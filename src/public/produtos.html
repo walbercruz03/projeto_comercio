@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos Disponíveis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f6; padding: 40px 20px; }
+        
+        .header-loja { max-width: 1200px; margin: 0 auto 30px; display: flex; justify-content: space-between; align-items: center; }
+        h1 { color: #333; }
+        .badge-admin { background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
+        
+        .grid-produtos { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .card-produto { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .card-produto img { width: 100%; height: 200px; object-fit: cover; background-color: #eee; }
+        
+        .produto-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .produto-info h3 { margin-bottom: 8px; color: #222; }
+        .produto-info p { color: #666; font-size: 0.9rem; margin-bottom: 15px; flex-grow: 1; }
+        .preco { font-size: 1.3rem; font-weight: bold; color: #28a745; margin-bottom: 15px; }
+        
+        /* Botões Dinâmicos */
+        .btn-comprar { background-color: #007BFF; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-comprar:hover { background-color: #0056b3; }
+        
+        /* Painel de Ações do Admin */
+        .admin-actions { display: flex; gap: 10px; width: 100%; }
+        .btn-edit { background-color: #ffc107; color: #212529; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-edit:hover { background-color: #e0a800; }
+        .btn-delete { background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-delete:hover { background-color: #bd2130; }
+        
+        .btn-voltar { background-color: #6c757d; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-loja">
+        <div>
+            <h1>Catálogo de Produtos</h1>
+            <div id="statusPainel"></div> </div>
+        <a href="apresentacao.html" class="btn-voltar">Voltar para Loja</a>
+    </div>
+
+    <div class="grid-produtos" id="listaProdutos">
+        </div>
+
+    <script src="js/produtos.js">
+        
+    </script>
+</body>
+</html>

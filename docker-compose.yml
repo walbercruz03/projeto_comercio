@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Servidor do Node.js (sua aplicação)
+  app:
+    build: .
+    container_name: projeto_vendas_app
+    ports:
+      - "${PORT}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - db
+
+  # Servidor do Banco de Dados (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: projeto_vendas_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "${DB_PORT_LOCAL}:3306" # Usa a 3307 externa apontando para a 3306 interna
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # ⚠️ Mapeia seu script de inicialização para o Docker rodar
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  mysql_data:
