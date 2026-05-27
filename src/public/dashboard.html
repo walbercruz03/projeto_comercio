@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Importação do Chart.js para desenhar os gráficos nativamente -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="title-area">
+                <h1><i class="fa-solid fa-chart-pie"></i> Dashboard Financeiro</h1>
+                <p>Métricas e estatísticas em tempo real da loja</p>
+            </div>
+            <a href="apresentacao.html" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Voltar à Loja</a>
+        </header>
+
+        <!-- Cards de Resumo Rápido -->
+        <div class="cards-grid">
+            <div class="kpi-card">
+                <div class="icon-box icon-blue"><i class="fa-solid fa-cart-arrow-down"></i></div>
+                <div class="kpi-info">
+                    <h3>Total de Pedidos</h3>
+                    <p id="totalPedidos">--</p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="icon-box icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
+                <div class="kpi-info">
+                    <h3>Faturamento (R$)</h3>
+                    <p id="receitaTotal">R$ 0,00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área do Gráfico -->
+        <div class="chart-container">
+            <h2><i class="fa-solid fa-ranking-star"></i> Top 5 Produtos Mais Vendidos</h2>
+            <canvas id="graficoMaisVendidos"></canvas>
+        </div>
+    </div>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

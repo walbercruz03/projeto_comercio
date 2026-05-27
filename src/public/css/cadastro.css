@@ -1,0 +1,114 @@
+/* ==========================================
+   CONFIGURAÇÕES GERAIS (RESET)
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #74b9ff, #002864);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ==========================================
+   TÍTULO DO FORMULÁRIO
+   ========================================== */
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* ==========================================
+   ESTILIZAÇÃO DO CONTAINER (FORM)
+   ========================================== */
+form {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 450px; /* Largura máxima confortável para ler e digitar */
+    padding: 30px;
+    border-radius: 12px; /* Bordas arredondadas modernas */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05); /* Sombra bem leve para dar profundidade */
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Espaço uniforme entre os campos */
+}
+
+/* ==========================================
+   LABELS (TEXTOS DOS CAMPOS)
+   ========================================== */
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: -6px; /* Aproxima um pouquinho a label do seu respectivo input */
+}
+
+/* ==========================================
+   INPUTS (CAMPOS DE DIGITAÇÃO)
+   ========================================== */
+input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border: 1.5px solid #dcdcdc;
+    border-radius: 8px;
+    background-color: #fbfbfb;
+    color: #333;
+    transition: all 0.3s ease; /* Transição suave ao clicar ou passar o mouse */
+    outline: none;
+}
+
+/* Efeito ao passar o mouse por cima do campo */
+input:hover {
+    border-color: #b3b3b3;
+}
+
+/* Efeito super intuitivo quando o usuário clica para digitar */
+input:focus {
+    border-color: #007BFF;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.15); /* Brilho azul em volta do campo */
+}
+
+/* Ajuste específico para o campo de data parecer nativo e limpo */
+input[type="date"] {
+    color: #666;
+}
+
+/* ==========================================
+   BOTÃO DE CADASTRO
+   ========================================== */
+button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #007BFF; /* Azul principal */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Efeito hover (passar o mouse) */
+button:hover {
+    background-color: #0056b3; /* Azul mais escuro */
+}
+
+/* Efeito active (quando o botão é clicado de fato) */
+button:active {
+    transform: scale(0.98); /* Dá um leve efeito de "afundar" o botão */
+}

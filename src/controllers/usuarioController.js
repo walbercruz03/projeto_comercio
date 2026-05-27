@@ -1,7 +1,7 @@
 // src/controllers/usuarioController.js
-const Usuario = require('../models/usuario');
+import Usuario from '../models/usuario.js';
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, senha } = req.body;
 
@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.cadastro = async (req, res) => {
+export const cadastro = async (req, res) => {
   try {
     const { nome, cpf, dataNascimento, email, telefone, senha } = req.body;
 

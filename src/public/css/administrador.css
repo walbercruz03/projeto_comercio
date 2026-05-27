@@ -1,0 +1,11 @@
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f6; padding: 40px 20px; }
+        .container { max-width: 600px; background: white; margin: 0 auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h1 { margin-bottom: 20px; color: #333; font-size: 1.8rem; text-align: center; border-bottom: 2px solid #007BFF; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 5px; }
+        label { font-weight: 600; color: #555; }
+        input[type="text"], input[type="number"], textarea, input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        textarea { resize: vertical; height: 100px; }
+        .btn-enviar { width: 100%; background-color: #28a745; color: white; border: none; padding: 12px; border-radius: 4px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-enviar:hover { background-color: #218838; }
+        .link-loja { display: block; text-align: center; margin-top: 15px; color: #007BFF; text-decoration: none; }

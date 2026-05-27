@@ -1,50 +1,76 @@
-// src/models/pedido.js
-const db = require('../config/database');
+import db from '../config/database.js';
 
 const Pedido = {
+  buscarUltimoPedidoItens: async (idUsuario) => {
+    const query = `
+        SELECT pi.quantidade, pi.preco_unitario, p.nome AS nome_produto 
+        FROM pedido_item pi
+        JOIN pedido ped ON pi.id_pedido = ped.id_pedido
+        JOIN produto p ON pi.id_produto = p.id_produto
+        WHERE ped.id_usuario = ? AND ped.id_pedido = (
+            SELECT MAX(id_pedido) FROM pedido WHERE id_usuario = ?
+        )
+    `;
+    const [rows] = await db.execute(query, [idUsuario, idUsuario]);
+    return rows;
+  },
+
   criarPedidoCompleto: async (idUsuario, itens) => {
-    // Pegamos uma conexão exclusiva do pool para controlar a transação
     const connection = await db.getConnection();
-    
     try {
-      // Inicia a transação. Se algo der errado daqui para frente, nada é salvo no banco
       await connection.beginTransaction();
 
-      // 1. Insere o cabeçalho do pedido
       const queryPedido = 'INSERT INTO pedido (id_usuario) VALUES (?)';
       const [resultPedido] = await connection.execute(queryPedido, [idUsuario]);
-      const idPedido = resultPedido.insertId; // Captura o ID do pedido gerado automaticamente
+      const idPedido = resultPedido.insertId;
 
-      // 2. Percorre a lista de itens e insere na tabela pedido_item
       const queryItem = `INSERT INTO pedido_item (id_pedido, id_produto, quantidade, preco_unitario) 
                          VALUES (?, ?, ?, ?)`;
       
       for (const item of itens) {
-        await connection.execute(queryItem, [
-          idPedido, 
-          item.id_produto, 
-          item.quantidade, 
-          item.preco_unitario
-        ]);
+        await connection.execute(queryItem, [idPedido, item.id_produto, item.quantidade, item.preco_unitario]);
 
-        // Opcional: Atualiza o estoque do produto decrementando a quantidade comprada
         const queryEstoque = 'UPDATE produto SET estoque = estoque - ? WHERE id_produto = ?';
         await connection.execute(queryEstoque, [item.quantidade, item.id_produto]);
       }
 
-      // Se todas as inserções deram certo, confirma tudo de uma vez no banco
       await connection.commit();
       return idPedido;
-
     } catch (error) {
-      // Se houver qualquer erro (ex: produto sem estoque), desfaz tudo o que foi feito acima
       await connection.rollback();
       throw error;
     } finally {
-      // Devolve a conexão de volta para o pool do Docker
       connection.release();
     }
+  },
+
+  buscarDadosDashboard: async () => {
+    // Busca o total de vendas realizadas e o somatório (faturamento)
+    const queryResumo = `
+        SELECT 
+            COUNT(DISTINCT p.id_pedido) as total_pedidos,
+            COALESCE(SUM(pi.quantidade * pi.preco_unitario), 0) as receita_total
+        FROM pedido p
+        LEFT JOIN pedido_item pi ON p.id_pedido = pi.id_pedido
+    `;
+    const [resumo] = await db.execute(queryResumo);
+
+    // Busca os 5 produtos com maior número de saída (mais vendidos)
+    const queryMaisVendidos = `
+        SELECT pr.nome, SUM(pi.quantidade) as total_vendido
+        FROM pedido_item pi
+        JOIN produto pr ON pi.id_produto = pr.id_produto
+        GROUP BY pr.id_produto
+        ORDER BY total_vendido DESC
+        LIMIT 5
+    `;
+    const [maisVendidos] = await db.execute(queryMaisVendidos);
+
+    return {
+        resumo: resumo[0],
+        maisVendidos
+    };
   }
 };
 
-module.exports = Pedido;
+export default Pedido;

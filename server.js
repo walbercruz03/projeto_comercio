@@ -1,9 +1,14 @@
 // server.js
-const express = require('express');
-const path = require('path');
-const usuarioRoutes = require('./src/routes/usuarioRoutes'); // Entra em src/
-const produtoRoutes = require ('./src/routes/produtoRoutes')
-const pedidoRoutes = require('./src/routes/pedidoRoutes');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import usuarioRoutes from './src/routes/usuarioRoutes.js'; // Entra em src/
+import produtoRoutes from './src/routes/produtoRoutes.js';
+import pedidoRoutes from './src/routes/pedidoRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 app.use(express.json());

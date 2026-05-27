@@ -22,7 +22,7 @@
                 <a href="admin.html"><i class="fa-solid fa-plus"></i> Criar Produto</a>
                 <a href="produtos.html"><i class="fa-solid fa-list-check"></i> Gerenciar Catálogo</a>
                 <div class="menu-header">Relatórios</div>
-                <a href="#" onclick="alert('Histórico de Vendas em breve!')"><i class="fa-solid fa-chart-line"></i> Vendas / Pedidos</a>
+                <a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Vendas / Pedidos</a>
             `;
         } else {
             perfilUsuario.innerHTML = '<i class="fa-solid fa-user"></i> Cliente';

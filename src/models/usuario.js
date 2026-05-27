@@ -1,5 +1,5 @@
 // src/models/usuario.js
-const db = require('../config/database');
+import db from '../config/database.js';
 
 const Usuario = {
   buscarPorEmail: async (email) => {
@@ -16,4 +16,4 @@ const Usuario = {
   }
 };
 
-module.exports = Usuario;
+export default Usuario;
