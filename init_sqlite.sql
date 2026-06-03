@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS usuario (
   data_nascimento TEXT,
   email TEXT UNIQUE,
   telefone TEXT,
-  senha TEXT
+  senha TEXT,
+  tipo_usuario TEXT DEFAULT 'cliente'
 );
 
 -- 2. Tabela de Produtos (Sintaxe SQLite)
@@ -39,8 +40,8 @@ CREATE TABLE IF NOT EXISTS pedido_item (
 );
 
 -- Inserir o Admin Oficial no SQLite (Se já existir, ignora)
-INSERT OR IGNORE INTO usuario (nome, cpf, data_nascimento, email, telefone, senha) 
-VALUES ('Administrador', '000.000.000-00', '2000-01-01', 'admin@gmail.com', '(00) 00000-0000', 'admin123');
+INSERT OR IGNORE INTO usuario (nome, cpf, data_nascimento, email, telefone, senha, tipo_usuario) 
+VALUES ('Administrador', '000.000.000-00', '2000-01-01', 'admin@gmail.com', '(00) 00000-0000', 'admin123', 'admin_principal');
 
 -- Inserir Produtos de Teste no SQLite
 INSERT INTO produto (nome, descricao, preco, estoque, imagem) VALUES 

@@ -1,7 +1,8 @@
 // 1. Identifica se o usuário logado é o administrador baseado no e-mail que salvamos no login
         // Para testar sem login, você pode forçar como true mudando para: const isAdmin = true;
         const emailUsuario = sessionStorage.getItem('emailUsuarioLogado'); 
-        const isAdmin = (emailUsuario === "admin@comercio.com");
+        const tipoUsuario = sessionStorage.getItem('tipoUsuario');
+        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin");
 
         window.addEventListener('DOMContentLoaded', () => {
             const statusPainel = document.getElementById('statusPainel');

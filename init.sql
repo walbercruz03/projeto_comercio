@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS usuario (
   data_nascimento DATE,
   email VARCHAR(50),
   telefone VARCHAR(50),
-  senha VARCHAR(50)
+  senha VARCHAR(50),
+  tipo_usuario VARCHAR(20) DEFAULT 'cliente'
 );
 
 -- 2. Tabela de Produtos
@@ -43,8 +44,8 @@ CREATE TABLE IF NOT EXISTS pedido_item (
 
 
 -- Garante que o Admin oficial do sistema seja criado no Docker
-INSERT INTO usuario (nome, cpf, data_nascimento, email, telefone, senha) 
-VALUES ('Administrador', '000.000.000-00', '2000-01-01', 'admin@gmail.com', '(00) 00000-0000', 'admin123')
+INSERT INTO usuario (nome, cpf, data_nascimento, email, telefone, senha, tipo_usuario) 
+VALUES ('Administrador', '000.000.000-00', '2000-01-01', 'admin@gmail.com', '(00) 00000-0000', 'admin123', 'admin_principal')
 ON DUPLICATE KEY UPDATE id_usuario=id_usuario;
 
 INSERT INTO produto (nome, descricao, preco, estoque, imagem) VALUES 

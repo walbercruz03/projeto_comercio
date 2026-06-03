@@ -30,14 +30,13 @@ let btnEnviar = document.getElementById("enviar");
                     // Força o e-mail a ser salvo sempre em letras minúsculas e sem espaços
                     const emailFormatado = usuarioDigitado.trim().toLowerCase();
 
-                    sessionStorage.setItem('idUsuarioLogado', res.body.usuario.id);
+                    sessionStorage.setItem('idUsuarioLogado', res.body.usuario.id || res.body.usuario.id_usuario);
                     sessionStorage.setItem('emailUsuarioLogado', emailFormatado);
+                    sessionStorage.setItem('tipoUsuario', res.body.usuario.tipo_usuario);
                     
-                    // VALIDAÇÃO COM O EMAIL QUE VOCÊ QUER (admin@gmail.com)
-                    if (emailFormatado === "admin@gmail.com") {
-                        alert("Bem-vindo, Administrador! Acessando a Vitrine...");
-                        // Enviamos para a apresentação. Como o e-mail gravado é o correto,
-                        // a vitrine vai abrir em modo Admin automaticamente!
+                    // VALIDAÇÃO PELO TIPO DE USUÁRIO
+                    if (res.body.usuario.tipo_usuario === "admin_principal" || res.body.usuario.tipo_usuario === "admin") {
+                        alert("Bem-vindo, Administrador! Acessando o painel...");
                         window.location.href = "apresentacao.html";
                     } else {
                         alert(`Bem-vindo, ${res.body.usuario.nome}! Login realizado com sucesso.`);

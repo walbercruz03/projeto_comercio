@@ -1,7 +1,9 @@
   // 1. Identificação do Perfil logado
         const emailUsuario = sessionStorage.getItem('emailUsuarioLogado');
         const idUsuarioLogado = sessionStorage.getItem('idUsuarioLogado') || 1;
-        const isAdmin = (emailUsuario === "admin@gmail.com");
+        const tipoUsuario = sessionStorage.getItem('tipoUsuario');
+        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin");
+        const isMainAdmin = (tipoUsuario === "admin_principal");
 
         // 2. Elementos da Tela
         const btnMenu = document.getElementById('btnMenu');
@@ -17,10 +19,15 @@
             perfilUsuario.style.backgroundColor = '#dc3545';
             boasVindasTitulo.innerHTML = 'Painel Administrativo';
 
+            const menuAdmins = isMainAdmin ? `
+                <div class="menu-header">Gerenciar Usuários</div>
+                <a href="gerenciar_admins.html"><i class="fa-solid fa-users-gear"></i> Gerenciar Admins</a>` : '';
+
             itensMenu.innerHTML = `
                 <div class="menu-header">Gerenciamento</div>
                 <a href="admin.html"><i class="fa-solid fa-plus"></i> Criar Produto</a>
                 <a href="produtos.html"><i class="fa-solid fa-list-check"></i> Gerenciar Catálogo</a>
+                ${menuAdmins}
                 <div class="menu-header">Relatórios</div>
                 <a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Vendas / Pedidos</a>
             `;
