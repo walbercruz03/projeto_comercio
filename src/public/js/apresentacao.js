@@ -2,8 +2,8 @@
         const emailUsuario = sessionStorage.getItem('emailUsuarioLogado');
         const idUsuarioLogado = sessionStorage.getItem('idUsuarioLogado') || 1;
         const tipoUsuario = sessionStorage.getItem('tipoUsuario');
-        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin");
-        const isMainAdmin = (tipoUsuario === "admin_principal");
+        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin" || emailUsuario === "admin@gmail.com");
+        const isMainAdmin = (tipoUsuario === "admin_principal" || emailUsuario === "admin@gmail.com");
 
         // 2. Elementos da Tela
         const btnMenu = document.getElementById('btnMenu');

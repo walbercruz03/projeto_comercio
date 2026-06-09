@@ -43,3 +43,55 @@ export const cadastro = async (req, res) => {
     res.status(500).json({ erro: "Erro ao cadastrar usuário." });
   }
 };
+
+export const listarAdmins = async (req, res) => {
+  try {
+    const admins = await Usuario.listarAdmins();
+    res.json(admins);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao buscar administradores." });
+  }
+};
+
+export const cadastrarAdmin = async (req, res) => {
+  try {
+    const { nome, email, senha } = req.body;
+
+    const usuarioExistente = await Usuario.buscarPorEmail(email);
+    if (usuarioExistente) {
+      return res.status(400).json({ erro: "Já existe um usuário cadastrado com este e-mail." });
+    }
+
+    await Usuario.cadastrarAdmin({ nome, email, senha });
+    res.status(201).json({ mensagem: "Administrador criado com sucesso!" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao criar administrador." });
+  }
+};
+
+export const atualizarAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, email, senha } = req.body;
+
+    await Usuario.atualizarAdmin(id, { nome, email, senha });
+    res.json({ mensagem: "Administrador atualizado com sucesso!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao atualizar administrador." });
+  }
+};
+
+export const excluirAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Usuario.excluirAdmin(id);
+    res.json({ mensagem: "Administrador removido com sucesso!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao excluir administrador." });
+  }
+};

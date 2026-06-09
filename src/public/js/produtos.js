@@ -2,14 +2,17 @@
         // Para testar sem login, você pode forçar como true mudando para: const isAdmin = true;
         const emailUsuario = sessionStorage.getItem('emailUsuarioLogado'); 
         const tipoUsuario = sessionStorage.getItem('tipoUsuario');
-        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin");
+        const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin" || emailUsuario === "admin@gmail.com");
 
         window.addEventListener('DOMContentLoaded', () => {
             const statusPainel = document.getElementById('statusPainel');
             
             // Mostra um indicador visual no topo caso seja Admin
             if (isAdmin) {
-                statusPainel.innerHTML = '<span class="badge-admin"><i class="fa-solid fa-user-gear"></i> Modo Administrador Ativo</span>';
+                statusPainel.innerHTML = `
+                    <span class="badge-admin"><i class="fa-solid fa-user-gear"></i> Modo Administrador Ativo</span>
+                    <button onclick="window.location.href='admin.html'" style="margin-left: 15px; padding: 5px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-plus"></i> Criar Novo Produto</button>
+                `;
             }
 
             // Busca os produtos direto do banco de dados no Docker
@@ -54,7 +57,7 @@
                         // Monta o card estruturado na tela
                         container.innerHTML += `
                             <div class="card-produto">
-                                <img src="${caminymImagem}" alt="${prod.nome}">
+                                <img src="${caminhoImagem}" alt="${prod.nome}">
                                 <div class="produto-info">
                                     <h3>${prod.nome}</h3>
                                     <p>${prod.descricao}</p>
@@ -73,9 +76,7 @@
         // ==========================================
 
         function editarProduto(id) {
-            alert(`Abrir formulário para editar o produto ID: ${id}`);
-            // Aqui futuramente você pode redirecionar para uma página de edição passando o ID na URL
-            // ex: window.location.href = `admin.html?edit=${id}`;
+            window.location.href = `admin.html?edit=${id}`;
         }
 
         function excluirProduto(id, nome) {

@@ -33,11 +33,18 @@ let btnEnviar = document.getElementById("enviar");
                     sessionStorage.setItem('idUsuarioLogado', res.body.usuario.id || res.body.usuario.id_usuario);
                     sessionStorage.setItem('emailUsuarioLogado', emailFormatado);
                     sessionStorage.setItem('tipoUsuario', res.body.usuario.tipo_usuario);
+
+                    // DEBUG: Pressione F12 e veja no Console se o tipo_usuario está vindo como 'admin'
+                    console.log("Dados do usuário vindos do banco:", res.body.usuario);
                     
-                    // VALIDAÇÃO PELO TIPO DE USUÁRIO
-                    if (res.body.usuario.tipo_usuario === "admin_principal" || res.body.usuario.tipo_usuario === "admin") {
+                    // VALIDAÇÃO PELO TIPO DE USUÁRIO OU E-MAIL FIXO (Chave Mestra)
+                    if (res.body.usuario.tipo_usuario === "admin_principal" || res.body.usuario.tipo_usuario === "admin" || emailFormatado === "admin@gmail.com") {
+                        // Se o tipo_usuario falhou no banco, salvamos manualmente no front-end para as outras telas funcionarem
+                        if (emailFormatado === "admin@gmail.com" && !res.body.usuario.tipo_usuario) {
+                            sessionStorage.setItem('tipoUsuario', 'admin_principal');
+                        }
                         alert("Bem-vindo, Administrador! Acessando o painel...");
-                        window.location.href = "apresentacao.html";
+                        window.location.href = "produtos.html";
                     } else {
                         alert(`Bem-vindo, ${res.body.usuario.nome}! Login realizado com sucesso.`);
                         window.location.href = "apresentacao.html";

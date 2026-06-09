@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Segurança Básica: Verifica se é o Admin mesmo acessando
     const tipoUsuario = sessionStorage.getItem('tipoUsuario');
-    if (tipoUsuario !== "admin_principal" && tipoUsuario !== "admin") {
+    const emailUsuario = sessionStorage.getItem('emailUsuarioLogado');
+    if (tipoUsuario !== "admin_principal" && tipoUsuario !== "admin" && emailUsuario !== "admin@gmail.com") {
         alert("Acesso negado! Apenas administradores podem ver o dashboard.");
         window.location.href = "apresentacao.html";
         return;
