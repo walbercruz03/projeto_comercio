@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - Comércio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/login.css"> <!-- Reutilizando o CSS do login -->
+</head>
+<body>
+    <div class="login-card">
+        <h1>Recuperar Senha</h1>
+        <p class="subtitle">Informe seus dados para criar uma nova senha</p>
+        
+        <div class="form-group">
+            <label for="emailRecuperar">E-mail Cadastrado</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" id="emailRecuperar" placeholder="seu@email.com" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="cpfRecuperar">CPF Cadastrado</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-id-card"></i>
+                <input type="text" id="cpfRecuperar" placeholder="000.000.000-00" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="novaSenha">Nova Senha</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="novaSenha" placeholder="Digite a nova senha" required>
+            </div>
+        </div>
+        
+        <button id="btnRecuperar">Atualizar Senha</button>
+
+        <p class="signup-text" style="margin-top: 20px;"><a href="index.html">Lembrou a senha? Voltar para o Login</a></p>
+    </div>
+
+    <script src="js/esqueceu_senha.js"></script>
+</body>
+</html>

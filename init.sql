@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS comercio;
 USE comercio;
 
--- 1. Tabela de Usuários
+-- 1. Tabela de Usuários (Apenas Clientes)
 CREATE TABLE IF NOT EXISTS usuario (
   id_usuario INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(50),
@@ -9,8 +9,15 @@ CREATE TABLE IF NOT EXISTS usuario (
   data_nascimento DATE,
   email VARCHAR(50),
   telefone VARCHAR(50),
-  senha VARCHAR(50),
-  tipo_usuario VARCHAR(20) DEFAULT 'cliente'
+  senha VARCHAR(50)
+);
+
+-- 1.5. Tabela Exclusiva para Administradores Secundários
+CREATE TABLE IF NOT EXISTS administrador (
+  id_admin INT AUTO_INCREMENT PRIMARY KEY,
+  nome VARCHAR(50),
+  email VARCHAR(50) UNIQUE,
+  senha VARCHAR(50)
 );
 
 -- 2. Tabela de Produtos
@@ -20,7 +27,8 @@ CREATE TABLE IF NOT EXISTS produto (
   descricao TEXT,
   preco DECIMAL(10,2),
   estoque INT,
-  imagem VARCHAR(255) NULL
+  imagem VARCHAR(255) NULL,
+  categoria VARCHAR(50) DEFAULT 'Geral'
 );
 
 -- 3. Tabela de Pedidos
@@ -42,12 +50,7 @@ CREATE TABLE IF NOT EXISTS pedido_item (
   FOREIGN KEY (id_produto) REFERENCES produto(id_produto)
 );
 
-
--- Garante que o Admin oficial do sistema seja criado no Docker
-INSERT INTO usuario (nome, cpf, data_nascimento, email, telefone, senha, tipo_usuario) 
-VALUES ('Administrador', '000.000.000-00', '2000-01-01', 'admin@gmail.com', '(00) 00000-0000', 'admin123', 'admin_principal')
-ON DUPLICATE KEY UPDATE id_usuario=id_usuario;
-
-INSERT INTO produto (nome, descricao, preco, estoque, imagem) VALUES 
-('Teclado Mecânico', 'Teclado RGB com switch azul', 250.00, 15, NULL),
-('Mouse Gamer', 'Mouse de 12000 DPI com botões laterais', 150.00, 20, NULL);
+INSERT INTO produto (nome, descricao, preco, estoque, imagem, categoria) VALUES 
+('Teclado Mecânico', 'Teclado RGB com switch azul, ABNT2.', 250.00, 15, NULL, 'Periféricos'),
+('Mouse Gamer', 'Mouse de 12000 DPI com botões laterais.', 150.00, 20, NULL, 'Periféricos'),
+('Monitor 24" Full HD', 'Monitor 75Hz com painel IPS e design sem bordas.', 850.00, 10, NULL, 'Monitores');

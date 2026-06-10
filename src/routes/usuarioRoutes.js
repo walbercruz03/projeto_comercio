@@ -7,6 +7,7 @@ const router = express.Router();
 // Definição dos endpoints
 router.post('/login', usuarioController.login);
 router.post('/cadastro', usuarioController.cadastro);
+router.put('/recuperar-senha', usuarioController.recuperarSenha);
 
 // Rotas de Gerenciamento de Admins
 router.get('/admins', usuarioController.listarAdmins);
