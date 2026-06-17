@@ -1,5 +1,5 @@
 // src/controllers/usuarioController.js
-import Usuario from '../models/usuario.js';
+import { Usuario, Administrador } from '../config/orm.js';
 
 export const login = async (req, res) => {
   try {
@@ -18,7 +18,7 @@ export const login = async (req, res) => {
     }
 
     // 2º Passo: Busca na tabela exclusiva de Administradores
-    const admin = await Usuario.buscarAdminPorEmail(email);
+    const admin = await Administrador.findOne({ where: { email } });
     if (admin && admin.senha === senha) {
       return res.json({
         mensagem: "Login realizado com sucesso!",
@@ -27,7 +27,7 @@ export const login = async (req, res) => {
     }
 
     // 3º Passo: Busca na tabela comum de Clientes (usuario)
-    const usuario = await Usuario.buscarPorEmail(email);
+    const usuario = await Usuario.findOne({ where: { email } });
     if (usuario && usuario.senha === senha) {
       return res.json({
         mensagem: "Login realizado com sucesso!",
@@ -48,12 +48,13 @@ export const cadastro = async (req, res) => {
   try {
     const { nome, cpf, dataNascimento, email, telefone, senha } = req.body;
 
-    const usuarioExistente = await Usuario.buscarPorEmail(email);
+    const usuarioExistente = await Usuario.findOne({ where: { email } });
     if (usuarioExistente) {
       return res.status(400).json({ erro: "Este e-mail já está cadastrado!" });
     }
 
-    await Usuario.cadastrar({ nome, cpf, dataNascimento, email, telefone, senha });
+    // O Sequelize vai mapear o camelCase para o padrão snake_case da tabela automaticamente
+    await Usuario.create({ nome, cpf, data_nascimento: dataNascimento, email, telefone, senha });
     res.status(201).json({ mensagem: "Usuário cadastrado com sucesso!" });
 
   } catch (error) {
@@ -64,8 +65,17 @@ export const cadastro = async (req, res) => {
 
 export const listarAdmins = async (req, res) => {
   try {
-    const admins = await Usuario.listarAdmins();
-    res.json(admins);
+    const admins = await Administrador.findAll();
+    
+    // Formata o retorno para o padrão que o front-end (gerenciar_admins.js) espera
+    const adminsFormatado = admins.map(admin => ({
+      id_usuario: admin.id_admin,
+      nome: admin.nome,
+      email: admin.email,
+      tipo_usuario: 'admin'
+    }));
+    
+    res.json(adminsFormatado);
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao buscar administradores." });
@@ -76,12 +86,12 @@ export const cadastrarAdmin = async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
 
-    const usuarioExistente = await Usuario.buscarAdminPorEmail(email);
+    const usuarioExistente = await Administrador.findOne({ where: { email } });
     if (usuarioExistente) {
       return res.status(400).json({ erro: "Já existe um usuário cadastrado com este e-mail." });
     }
 
-    await Usuario.cadastrarAdmin({ nome, email, senha });
+    await Administrador.create({ nome, email, senha });
     res.status(201).json({ mensagem: "Administrador criado com sucesso!" });
 
   } catch (error) {
@@ -95,7 +105,10 @@ export const atualizarAdmin = async (req, res) => {
     const { id } = req.params;
     const { nome, email, senha } = req.body;
 
-    await Usuario.atualizarAdmin(id, { nome, email, senha });
+    // Se não enviou senha nova (vazia), atualiza só nome e email para não sobrescrever
+    const dadosAtualizar = senha ? { nome, email, senha } : { nome, email };
+
+    await Administrador.update(dadosAtualizar, { where: { id_admin: id } });
     res.json({ mensagem: "Administrador atualizado com sucesso!" });
   } catch (error) {
     console.error(error);
@@ -106,7 +119,7 @@ export const atualizarAdmin = async (req, res) => {
 export const excluirAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    await Usuario.excluirAdmin(id);
+    await Administrador.destroy({ where: { id_admin: id } });
     res.json({ mensagem: "Administrador removido com sucesso!" });
   } catch (error) {
     console.error(error);
@@ -123,13 +136,13 @@ export const recuperarSenha = async (req, res) => {
     }
 
     // Busca o usuário na tabela de clientes (usuario)
-    const usuario = await Usuario.buscarPorEmailECPF(email, cpf);
+    const usuario = await Usuario.findOne({ where: { email, cpf } });
 
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado. Verifique o e-mail e o CPF informados." });
     }
 
-    await Usuario.atualizarSenha(usuario.id_usuario, novaSenha);
+    await Usuario.update({ senha: novaSenha }, { where: { id_usuario: usuario.id_usuario } });
     res.status(200).json({ mensagem: "Senha atualizada com sucesso!" });
 
   } catch (error) {
