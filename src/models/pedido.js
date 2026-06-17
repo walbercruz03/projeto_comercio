@@ -46,37 +46,23 @@ const Pedido = {
     }
   },
 
-<<<<<<< HEAD
-  buscarDadosDashboard: async () => {
-    // Busca o total de vendas realizadas e o somatório (faturamento)
-    const queryResumo = `
-=======
   buscarDadosDashboard: async (dataInicio, dataFim) => {
     const params = {};
 
     // Monta as queries de forma dinâmica
     let queryResumo = `
->>>>>>> 3e1a7a4 (sequelize)
         SELECT 
             COUNT(DISTINCT p.id_pedido) as total_pedidos,
             COALESCE(SUM(pi.quantidade * pi.preco_unitario), 0) as receita_total
         FROM pedido p
         LEFT JOIN pedido_item pi ON p.id_pedido = pi.id_pedido
     `;
-    const [resumo] = await db.execute(queryResumo);
 
     // Busca os 5 produtos com maior número de saída (mais vendidos)
-    const queryMaisVendidos = `
+    let queryMaisVendidos = `
         SELECT pr.nome, SUM(pi.quantidade) as total_vendido
         FROM pedido_item pi
         JOIN produto pr ON pi.id_produto = pr.id_produto
-<<<<<<< HEAD
-        GROUP BY pr.id_produto
-        ORDER BY total_vendido DESC
-        LIMIT 5
-    `;
-    const [maisVendidos] = await db.execute(queryMaisVendidos);
-=======
         JOIN pedido p ON pi.id_pedido = p.id_pedido
     `;
 
@@ -98,14 +84,11 @@ const Pedido = {
 
     const resumo = await sequelize.query(queryResumo, { replacements: params, type: QueryTypes.SELECT });
     const maisVendidos = await sequelize.query(queryMaisVendidos, { replacements: params, type: QueryTypes.SELECT });
->>>>>>> 3e1a7a4 (sequelize)
 
     return {
         resumo: resumo[0],
         maisVendidos: maisVendidos.map(item => ({ ...item, total_vendido: Number(item.total_vendido) }))
     };
-<<<<<<< HEAD
-=======
   },
 
   buscarPedidosPorUsuario: async (idUsuario) => {
@@ -188,7 +171,6 @@ const Pedido = {
     });
 
     return Object.values(pedidosAgrupados);
->>>>>>> 3e1a7a4 (sequelize)
   }
 };
 
