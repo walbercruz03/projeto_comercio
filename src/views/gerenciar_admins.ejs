@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Administradores</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/apresentacao.css">
+    <style>
+        /* Estilos específicos para esta página, para manter o layout original */
+        .main-content {
+            margin-top: 80px; /* Espaço para o header fixo */
+        }
+        .form-admin {
+            background: var(--bg-card, #fff);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color, #ddd);
+        }
+        .form-admin input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        .form-admin button {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .card-admin {
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Padrão com Botão de Menu -->
+    <header class="main-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--bg-header, #fff); box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; z-index: 1001;">
+        <button id="btnMenu" style="background: none; border: none; font-size: 24px; cursor: pointer;"><i class="fa-solid fa-bars"></i></button>
+        <h1 style="margin: 0; font-size: 24px;"><i class="fa-solid fa-users-gear"></i> Gestão de Admins</h1>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label for="themeToggle" style="cursor: pointer;"><i class="fa-solid fa-moon"></i></label>
+            <input type="checkbox" id="themeToggle" style="display:none;">
+        </div>
+    </header>
+
+    <!-- Menu Lateral Padrão -->
+    <div id="menuOverlay" class="overlay"></div>
+    <nav id="sidebarMenu" class="sidebar">
+        <div id="perfilUsuario" style="padding: 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid var(--border-color, #ddd);">
+            <i class="fa-solid fa-user-shield"></i> Administrador
+        </div>
+        <div id="itensMenu" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+            <div class="menu-header" style="font-size: 14px; text-transform: uppercase; opacity: 0.7;">Gestão de Produtos</div>
+            <a href="/admin.html" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-plus"></i> Cadastrar Produto</a>
+            <a href="/produtos" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-list-check"></i> Catálogo</a>
+            <div class="menu-header" style="font-size: 14px; text-transform: uppercase; margin-top: 15px; opacity: 0.7;">Administração</div>
+            <a href="/gerenciar_admins" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-users-gear"></i> Gerenciar Admins</a>
+            <a href="/dashboard" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <button id="btnSair" style="margin-top: 20px; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+            </button>
+        </div>
+    </nav>
+
+    <div class="container main-content" style="max-width: 800px; margin: 80px auto 20px;">
+        <form id="formAdmin" class="form-admin">
+            <h3>Cadastrar / Editar Administrador</h3>
+            <div>
+                <input type="hidden" id="adminId">
+                <input type="text" id="nomeAdmin" placeholder="Nome Completo" required>
+                <input type="email" id="emailAdmin" placeholder="E-mail" required>
+                <input type="password" id="senhaAdmin" placeholder="Senha do Admin" required>
+            </div>
+            <button type="submit">Cadastrar Administrador</button>
+        </form>
+
+        <div id="listaAdmins">
+            <% 
+               const subAdmins = admins ? admins.filter(a => a.tipo_usuario !== 'admin_principal' && a.email !== 'admin@gmail.com') : [];
+            %>
+
+            <% if (subAdmins.length > 0) { %>
+                <% subAdmins.forEach(function(admin) { %>
+                    <div class="card-admin">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0;"><i class="fa-solid fa-user-shield" style="color: #0d6efd;"></i> <%= admin.nome %></h4>
+                            <p style="margin: 0; font-size: 14px; opacity: 0.8;"><i class="fa-solid fa-envelope"></i> <%= admin.email %></p>
+                        </div>
+                        <div>
+                            <button onclick="editarAdmin(<%= admin.id_usuario || admin.id_admin %>, '<%= admin.nome %>', '<%= admin.email %>')" style="background: #ffc107; color: #000; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-weight: bold;"><i class="fa-solid fa-pen"></i> Editar</button>
+                            <button onclick="excluirAdmin(<%= admin.id_usuario || admin.id_admin %>)" style="background: #dc3545; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-trash"></i> Excluir</button>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p style="font-style: italic; opacity: 0.8;">
+                    Nenhum administrador adicional cadastrado no momento. Utilize o formulário acima para adicionar novos gestores.
+                </p>
+            <% } %>
+        </div>
+    </div>
+
+    <script src="/js/gerenciar_admins.js"></script>
+    <script src="/js/apresentacao.js"></script>
+</body>
+</html>

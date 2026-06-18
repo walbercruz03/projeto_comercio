@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <!-- Importação do Chart.js para desenhar os gráficos nativamente -->
+    <!-- Caminho absoluto para pegar o CSS da pasta public -->
+    <link rel="stylesheet" href="/css/dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -16,7 +16,16 @@
                 <h1><i class="fa-solid fa-chart-pie"></i> Dashboard Financeiro</h1>
                 <p>Métricas e estatísticas em tempo real da loja</p>
             </div>
-            <a href="apresentacao.html" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Voltar à Loja</a>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <!-- Botão de Troca de Tema -->
+                <div style="display: flex; align-items: center; margin-right: 15px; font-size: 20px; cursor: pointer;">
+                    <label for="themeToggle" style="cursor: pointer;" title="Mudar Tema"><i class="fa-solid fa-circle-half-stroke"></i></label>
+                    <input type="checkbox" id="themeToggle" style="display:none;">
+                </div>
+
+                <a href="/produtos" class="btn-voltar"><i class="fa-solid fa-store"></i> Ver Catálogo</a>
+                <button onclick="document.cookie='token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; localStorage.removeItem('theme'); window.location.href='/index.html';" class="btn-voltar" style="background: #dc3545;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
+            </div>
         </header>
 
         <!-- Controles de Filtro e Impressão -->
@@ -40,20 +49,21 @@
             </button>
         </div>
 
-        <!-- Cards de Resumo Rápido -->
-        <div class="cards-grid">
+        <!-- Cards de Resumo Rápido renderizados diretamente no servidor -->
+        <div class="cards-grid" style="margin-top: 20px;">
             <div class="kpi-card">
                 <div class="icon-box icon-blue"><i class="fa-solid fa-cart-arrow-down"></i></div>
                 <div class="kpi-info">
                     <h3>Total de Pedidos</h3>
-                    <p id="totalPedidos">--</p>
+                    <!-- O EJS injeta a variável direto no HTML -->
+                    <p id="totalPedidos"><%= resumo.total_pedidos %></p>
                 </div>
             </div>
             <div class="kpi-card">
                 <div class="icon-box icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
                 <div class="kpi-info">
                     <h3>Faturamento (R$)</h3>
-                    <p id="receitaTotal">R$ 0,00</p>
+                    <p id="receitaTotal">R$ <%= parseFloat(resumo.receita_total).toFixed(2).replace('.', ',') %></p>
                 </div>
             </div>
         </div>
@@ -64,7 +74,7 @@
             <canvas id="graficoMaisVendidos"></canvas>
         </div>
 
-        <!-- Tabela Relatório Detalhado (Oculta na tela normal, visível apenas na impressão/PDF) -->
+        <!-- Tabela Relatório Detalhado (Com Loop Dinâmico do EJS) -->
         <div id="relatorioDetalhado" class="relatorio-print">
             <h2 style="margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Relatório Detalhado de Vendas</h2>
             <table class="tabela-print">
@@ -77,11 +87,27 @@
                     </tr>
                 </thead>
                 <tbody id="tabelaRelatorioBody">
-                    <!-- Preenchido automaticamente via JavaScript -->
+                    <% if (pedidosDetalhados && pedidosDetalhados.length > 0) { %>
+                        <% pedidosDetalhados.forEach(function(pedido) { 
+                            const dataFormatada = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
+                            const valorFormatado = parseFloat(pedido.valor_total).toFixed(2).replace('.', ',');
+                        %>
+                        <tr>
+                            <td>#<%= pedido.id_pedido %></td>
+                            <td><%= pedido.nome_cliente || 'Cliente não identificado' %></td>
+                            <td><%= dataFormatada %></td>
+                            <td>R$ <%= valorFormatado %></td>
+                        </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr><td colspan="4" style="text-align:center;">Nenhum pedido encontrado.</td></tr>
+                    <% } %>
                 </tbody>
             </table>
         </div>
     </div>
-    <script src="js/dashboard.js"></script>
+
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/apresentacao.js"></script>
 </body>
 </html>

@@ -51,7 +51,7 @@
         .then(response => {
             if (response.status === 200 || response.status === 201) {
                 alert(idProdutoEdicao ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
-                window.location.href = "produtos.html"; // Mantém no painel de controle
+                window.location.href = "/produtos"; // Mantém no painel dinâmico (EJS)
             } else {
                 alert('Erro ao salvar o produto.');
             }

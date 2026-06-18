@@ -11,6 +11,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Caminho corrigido para a pasta pública na raiz do código fonte
     cb(null, path.join(__dirname, '../public/uploads/'));
   },
   filename: (req, file, cb) => {

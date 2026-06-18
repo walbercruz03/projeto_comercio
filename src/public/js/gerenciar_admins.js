@@ -1,58 +1,5 @@
-const tipoUsuario = sessionStorage.getItem('tipoUsuario');
-const emailUsuario = sessionStorage.getItem('emailUsuarioLogado');
-
-// 1. Validação de Segurança (Incluindo a chave mestra)
-if (tipoUsuario !== 'admin_principal' && emailUsuario !== 'admin@gmail.com') {
-    alert("Acesso negado. Apenas o administrador principal pode acessar esta página.");
-    window.location.href = "apresentacao.html";
-}
-
-window.addEventListener('DOMContentLoaded', carregarAdmins);
-
-// 2. Acompanhamento: Carrega e exibe a lista visual de Administradores
-function carregarAdmins() {
-    fetch('/api/usuarios/admins')
-        .then(res => {
-            if(!res.ok) throw new Error("Erro de conexão");
-            return res.json();
-        })
-        .then(admins => {
-            const container = document.getElementById('listaAdmins');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            let adminsSecundarios = 0;
-
-            admins.forEach(admin => {
-                // Só exibe os sub-administradores (esconde a si mesmo/admin principal)
-                if (admin.tipo_usuario !== 'admin_principal' && admin.email !== 'admin@gmail.com') {
-                    adminsSecundarios++;
-                    const id = admin.id_usuario || admin.id;
-                    container.innerHTML += `
-                        <div class="card-admin" style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                            <div>
-                                <h4 style="margin: 0 0 5px 0; color: #333;"><i class="fa-solid fa-user-shield" style="color: #0d6efd;"></i> ${admin.nome}</h4>
-                                <p style="margin: 0; color: #666; font-size: 14px;"><i class="fa-solid fa-envelope"></i> ${admin.email}</p>
-                            </div>
-                            <div>
-                                <button onclick="editarAdmin(${id}, '${admin.nome}', '${admin.email}')" style="background: #ffc107; color: #000; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-weight: bold;"><i class="fa-solid fa-pen"></i> Editar</button>
-                                <button onclick="excluirAdmin(${id})" style="background: #dc3545; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-trash"></i> Excluir</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            // Se não houver nenhum sub-admin cadastrado
-            if (adminsSecundarios === 0) {
-                container.innerHTML = '<p style="color: #666; font-style: italic; background: #f9f9f9; padding: 15px; border-radius: 8px;">Nenhum administrador adicional cadastrado no momento. Utilize o formulário para adicionar novos gestores.</p>';
-            }
-        })
-        .catch(err => {
-            const container = document.getElementById('listaAdmins');
-            if(container) container.innerHTML = '<p style="color: red;">Erro ao carregar os administradores do banco de dados.</p>';
-        });
-}
+// A validação de segurança e o carregamento dos admins agora são feitos
+// de forma robusta no backend (SSR com EJS e JWT), garantindo proteção total.
 
 // 3. Cadastro / Edição de Admins
 document.getElementById('formAdmin')?.addEventListener('submit', (e) => {
@@ -73,7 +20,7 @@ document.getElementById('formAdmin')?.addEventListener('submit', (e) => {
     .then(async res => {
         if(res.ok) {
             alert(id ? "Dados do administrador atualizados com sucesso!" : "Novo administrador cadastrado com sucesso!");
-            carregarAdmins();
+            window.location.reload(); // Deixa o servidor remontar a página com o novo dado
             document.getElementById('formAdmin').reset();
             document.getElementById('adminId').value = '';
             
@@ -96,7 +43,7 @@ function excluirAdmin(id) {
         .then(res => {
             if(res.ok) {
                 alert("Administrador removido com sucesso!");
-                carregarAdmins();
+                window.location.reload(); // Recarrega para refletir a remoção via SSR
             } else {
                 alert("Falha ao remover o administrador.");
             }

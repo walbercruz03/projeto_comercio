@@ -16,23 +16,31 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - DB_PORT=5432 # Porta interna padrão do Postgres
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Garante que o Node só inicia quando o Postgres estiver pronto para receber conexões
 
-  # Servidor do Banco de Dados (MySQL)
+  # Servidor do Banco de Dados (PostgreSQL)
   db:
-    image: mysql:8.0
+    image: postgres:15-alpine
     container_name: projeto_vendas_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "${DB_PORT_LOCAL}:3306" # Usa a 3307 externa apontando para a 3306 interna
+      - "${DB_PORT_LOCAL}:5432" # Ex: 5432:5432 ou 5433:5432 caso já tenha outro Postgres na máquina
     volumes:
-      - mysql_data:/var/lib/mysql
-      # ⚠️ Mapeia seu script de inicialização para o Docker rodar
+      - postgres_data:/var/lib/postgresql/data
+      # Mapeia seu script de inicialização do Postgres para rodar automaticamente
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mysql_data:
+  postgres_data: # Volume renomeado para refletir o novo banco

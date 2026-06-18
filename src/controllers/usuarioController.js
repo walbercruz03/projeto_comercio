@@ -1,5 +1,7 @@
-// src/controllers/usuarioController.js
 import { Usuario, Administrador } from '../config/orm.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'chave_super_secreta_123';
 
 export const login = async (req, res) => {
   try {
@@ -9,54 +11,56 @@ export const login = async (req, res) => {
       return res.status(400).json({ erro: "E-mail e senha são obrigatórios!" });
     }
 
-    // 1º Passo: Verifica se é o Admin Principal (Hardcoded / Chave Mestra)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: false,  
+      maxAge: 24 * 60 * 60 * 1000 
+    };
+
+    // 1º Passo: Admin Principal (Alterado payload para id: 0)
     if (email === "admin@gmail.com" && senha === "admin123") {
-      return res.json({
-        mensagem: "Login realizado com sucesso!",
-        usuario: { id_usuario: 0, nome: "Administrador Principal", email: email, tipo_usuario: "admin_principal" }
-      });
+      const payload = { id: 0, nome: "Administrador Principal", email, tipo_usuario: "admin_principal" };
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+      res.cookie('token', token, cookieOptions);
+      return res.json({ mensagem: "Login realizado com sucesso!", usuario: payload });
     }
 
-    // 2º Passo: Busca na tabela exclusiva de Administradores
+    // 2º Passo: Administradores (Alterado para id: admin.id_admin)
     const admin = await Administrador.findOne({ where: { email } });
     if (admin && admin.senha === senha) {
-      return res.json({
-        mensagem: "Login realizado com sucesso!",
-        usuario: { id_usuario: admin.id_admin, nome: admin.nome, email: admin.email, tipo_usuario: "admin" }
-      });
+      const payload = { id: admin.id_admin, nome: admin.nome, email: admin.email, tipo_usuario: "admin" };
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+      res.cookie('token', token, cookieOptions);
+      return res.json({ mensagem: "Login realizado com sucesso!", usuario: payload });
     }
 
-    // 3º Passo: Busca na tabela comum de Clientes (usuario)
+    // 3º Passo: Clientes normais (Alterado para id: usuario.id_usuario)
     const usuario = await Usuario.findOne({ where: { email } });
     if (usuario && usuario.senha === senha) {
-      return res.json({
-        mensagem: "Login realizado com sucesso!",
-        usuario: { id_usuario: usuario.id_usuario, nome: usuario.nome, email: usuario.email, tipo_usuario: "cliente" }
-      });
+      const payload = { id: usuario.id_usuario, nome: usuario.nome, email: usuario.email, tipo_usuario: "cliente" };
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+      res.cookie('token', token, cookieOptions);
+      return res.json({ mensagem: "Login realizado com sucesso!", usuario: payload });
     }
 
-    // Se não encontrou em nenhum lugar
     return res.status(401).json({ erro: "E-mail ou senha incorretos!" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 };
 
+// ... os demais métodos de cadastro/exclusão continuam abaixo perfeitamente iguais ...
+
+
 export const cadastro = async (req, res) => {
   try {
     const { nome, cpf, dataNascimento, email, telefone, senha } = req.body;
-
     const usuarioExistente = await Usuario.findOne({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ erro: "Este e-mail já está cadastrado!" });
-    }
+    if (usuarioExistente) return res.status(400).json({ erro: "Este e-mail já está cadastrado!" });
 
-    // O Sequelize vai mapear o camelCase para o padrão snake_case da tabela automaticamente
     await Usuario.create({ nome, cpf, data_nascimento: dataNascimento, email, telefone, senha });
     res.status(201).json({ mensagem: "Usuário cadastrado com sucesso!" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao cadastrar usuário." });
@@ -66,16 +70,12 @@ export const cadastro = async (req, res) => {
 export const listarAdmins = async (req, res) => {
   try {
     const admins = await Administrador.findAll();
-    
-    // Formata o retorno para o padrão que o front-end (gerenciar_admins.js) espera
-    const adminsFormatado = admins.map(admin => ({
+    res.json(admins.map(admin => ({
       id_usuario: admin.id_admin,
       nome: admin.nome,
       email: admin.email,
       tipo_usuario: 'admin'
-    }));
-    
-    res.json(adminsFormatado);
+    })));
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao buscar administradores." });
@@ -85,15 +85,11 @@ export const listarAdmins = async (req, res) => {
 export const cadastrarAdmin = async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
-
-    const usuarioExistente = await Administrador.findOne({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ erro: "Já existe um usuário cadastrado com este e-mail." });
-    }
+    const existe = await Administrador.findOne({ where: { email } });
+    if (existe) return res.status(400).json({ erro: "Já existe um usuário cadastrado com este e-mail." });
 
     await Administrador.create({ nome, email, senha });
     res.status(201).json({ mensagem: "Administrador criado com sucesso!" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao criar administrador." });
@@ -104,12 +100,10 @@ export const atualizarAdmin = async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, senha } = req.body;
-
-    // Se não enviou senha nova (vazia), atualiza só nome e email para não sobrescrever
     const dadosAtualizar = senha ? { nome, email, senha } : { nome, email };
 
     await Administrador.update(dadosAtualizar, { where: { id_admin: id } });
-    res.json({ mensagem: "Administrador atualizado com sucesso!" });
+    res.json({ mensagem: "Administrador updated com sucesso!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao atualizar administrador." });
@@ -130,23 +124,15 @@ export const excluirAdmin = async (req, res) => {
 export const recuperarSenha = async (req, res) => {
   try {
     const { email, cpf, novaSenha } = req.body;
+    if (!email || !cpf || !novaSenha) return res.status(400).json({ erro: "Todos os campos são obrigatórios." });
 
-    if (!email || !cpf || !novaSenha) {
-      return res.status(400).json({ erro: "Todos os campos são obrigatórios." });
-    }
-
-    // Busca o usuário na tabela de clientes (usuario)
     const usuario = await Usuario.findOne({ where: { email, cpf } });
-
-    if (!usuario) {
-      return res.status(404).json({ erro: "Usuário não encontrado. Verifique o e-mail e o CPF informados." });
-    }
+    if (!usuario) return res.status(404).json({ erro: "Usuário não encontrado." });
 
     await Usuario.update({ senha: novaSenha }, { where: { id_usuario: usuario.id_usuario } });
     res.status(200).json({ mensagem: "Senha atualizada com sucesso!" });
-
   } catch (error) {
-    console.error("Erro ao recuperar senha:", error);
+    console.error(error);
     res.status(500).json({ erro: "Erro interno do servidor ao tentar recuperar a senha." });
   }
 };

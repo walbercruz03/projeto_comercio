@@ -60,7 +60,7 @@
 
                     alert("Sucesso! Pedido gravado no banco de dados. Redirecionando para o WhatsApp do vendedor...");
                     localStorage.removeItem('carrinho'); // Limpa a memória local
-                    window.location.href = "apresentacao.html";
+                    window.location.href = "/produtos";
                 } else {
                     alert("Erro ao processar o fechamento do pedido no servidor.");
                 }

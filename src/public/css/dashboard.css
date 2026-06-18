@@ -93,3 +93,68 @@ body {
     margin-bottom: 20px;
     color: #444;
 }
+
+/* =========================================
+   ESTILOS ESPECÍFICOS PARA O PDF/IMPRESSÃO
+   ========================================= */
+.relatorio-print {
+    display: none; /* Oculta a tabela na navegação normal */
+}
+
+.tabela-print {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabela-print th, .tabela-print td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+@media print {
+    /* Oculta o painel superior, os filtros, botões e os GRÁFICOS na impressão */
+    .controles-dashboard, .btn-voltar, .dashboard-header p, .chart-container {
+        display: none !important;
+    }
+    
+    body {
+        background: white;
+    }
+    
+    /* Mostra apenas a Tabela Detalhada no PDF */
+    .relatorio-print {
+        display: block !important;
+    }
+}
+
+/* =========================================
+   MÁGICA DO DARK MODE
+   ========================================= */
+body.dark-mode {
+    background-color: #1e1e24;
+    color: #f1f1f1;
+}
+body.dark-mode .dashboard-header .title-area h1,
+body.dark-mode .chart-container h2 {
+    color: #fff;
+}
+body.dark-mode .title-area p,
+body.dark-mode .kpi-info h3 {
+    color: #aaa;
+}
+body.dark-mode .kpi-info p {
+    color: #f1f1f1;
+}
+body.dark-mode .kpi-card,
+body.dark-mode .chart-container,
+body.dark-mode .controles-dashboard {
+    background-color: #2b2b36 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+body.dark-mode .controles-dashboard input {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555 !important;
+}

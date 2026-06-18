@@ -1,41 +1,82 @@
-import { sequelize, Pedido as PedidoORM, PedidoItem, Produto } from '../config/orm.js';
-import { QueryTypes } from 'sequelize';
+import { sequelize, Pedido as PedidoORM, PedidoItem, Produto as ProdutoORM, Usuario } from '../config/orm.js';
+import { Op } from 'sequelize';
 
 const Pedido = {
-  buscarUltimoPedidoItens: async (idUsuario) => {
-    const query = `
-        SELECT pi.quantidade, pi.preco_unitario, p.nome AS nome_produto 
-        FROM pedido_item pi
-        JOIN pedido ped ON pi.id_pedido = ped.id_pedido
-        JOIN produto p ON pi.id_produto = p.id_produto
-        WHERE ped.id_usuario = :idUsuario AND ped.id_pedido = (
-            SELECT MAX(id_pedido) FROM pedido WHERE id_usuario = :idUsuario
-        )
-    `;
-    return await sequelize.query(query, {
-        replacements: { idUsuario },
-        type: QueryTypes.SELECT
+  buscarPedidosPorUsuario: async (id_usuario) => {
+    // 1. Busca todos os pedidos do usuário
+    const pedidos = await PedidoORM.findAll({
+      where: { id_usuario },
+      order: [['data_pedido', 'DESC']],
+      raw: true
+    });
+
+    if (pedidos.length === 0) return [];
+
+    // 2. Extrai itens correspondentes a esses pedidos
+    const idsPedidos = pedidos.map(p => p.id_pedido);
+    const itensQuery = await PedidoItem.findAll({
+      where: { id_pedido: { [Op.in]: idsPedidos } },
+      include: [{ model: ProdutoORM, attributes: ['nome'] }],
+      raw: true
+    });
+
+    // 3. Agrupa itens por ID do pedido para não sobrecarregar
+    const itensPorPedido = itensQuery.reduce((acc, item) => {
+      if (!acc[item.id_pedido]) acc[item.id_pedido] = [];
+      acc[item.id_pedido].push({
+        nome_produto: item['produto.nome'] || item['Produto.nome'] || 'Produto',
+        quantidade: item.quantidade,
+        preco_unitario: item.preco_unitario
+      });
+      return acc;
+    }, {});
+
+    return pedidos.map(p => {
+      const itens = itensPorPedido[p.id_pedido] || [];
+      const valorTotal = itens.reduce((soma, i) => soma + (Number(i.quantidade) * Number(i.preco_unitario)), 0);
+      return {
+        id_pedido: p.id_pedido,
+        data_pedido: p.data_pedido,
+        valor_total: valorTotal,
+        itens: itens
+      };
     });
   },
 
-  criarPedidoCompleto: async (idUsuario, itens) => {
-    // Inicia uma transação do Sequelize
+  buscarUltimoPedidoItens: async (id_usuario) => {
+    const ultimoPedido = await PedidoORM.findOne({
+      where: { id_usuario },
+      order: [['id_pedido', 'DESC']],
+      attributes: ['id_pedido']
+    });
+
+    if (!ultimoPedido) return [];
+
+    return await PedidoItem.findAll({
+      where: { id_pedido: ultimoPedido.id_pedido },
+      include: [{ model: ProdutoORM, attributes: ['nome'] }],
+      raw: true
+    });
+  },
+
+  criarPedidoCompleto: async (id_usuario, itens) => {
     const transaction = await sequelize.transaction();
     try {
-      // 1. Cria o Pedido
-      const novoPedido = await PedidoORM.create({ id_usuario: idUsuario }, { transaction });
+      const novoPedido = await PedidoORM.create({ id_usuario }, { transaction });
       
       for (const item of itens) {
-        // 2. Cria os itens do pedido
         await PedidoItem.create({
           id_pedido: novoPedido.id_pedido,
           id_produto: item.id_produto,
           quantidade: item.quantidade,
-          preco_unitario: item.preco_unitario
+          preco_unitario: Number(item.preco_unitario)
         }, { transaction });
 
-        // 3. Subtrai o estoque usando incremento negativo
-        await Produto.decrement('estoque', { by: item.quantidade, where: { id_produto: item.id_produto }, transaction });
+        await ProdutoORM.decrement('estoque', { 
+          by: item.quantidade, 
+          where: { id_produto: item.id_produto }, 
+          transaction 
+        });
       }
 
       await transaction.commit();
@@ -47,130 +88,104 @@ const Pedido = {
   },
 
   buscarDadosDashboard: async (dataInicio, dataFim) => {
-    const params = {};
+    try {
+      const whereClause = {};
+      if (dataInicio && dataFim) {
+        whereClause.data_pedido = {
+          [Op.between]: [dataInicio, `${dataFim} 23:59:59`]
+        };
+      }
 
-    // Monta as queries de forma dinâmica
-    let queryResumo = `
-        SELECT 
-            COUNT(DISTINCT p.id_pedido) as total_pedidos,
-            COALESCE(SUM(pi.quantidade * pi.preco_unitario), 0) as receita_total
-        FROM pedido p
-        LEFT JOIN pedido_item pi ON p.id_pedido = pi.id_pedido
-    `;
+      // 1. Busca todos os pedidos do período selecionado
+      const pedidos = await PedidoORM.findAll({ where: whereClause, raw: true });
+      const totalPedidos = pedidos.length;
 
-    // Busca os 5 produtos com maior número de saída (mais vendidos)
-    let queryMaisVendidos = `
-        SELECT pr.nome, SUM(pi.quantidade) as total_vendido
-        FROM pedido_item pi
-        JOIN produto pr ON pi.id_produto = pr.id_produto
-        JOIN pedido p ON pi.id_pedido = p.id_pedido
-    `;
+      if (totalPedidos === 0) {
+        return { 
+          resumo: { total_pedidos: 0, receita_total: 0 }, 
+          maisVendidos: [], 
+          pedidosDetalhados: [] 
+        };
+      }
 
-    // Adiciona a cláusula WHERE se as datas foram fornecidas
-    if (dataInicio && dataFim) {
-      const whereClause = ' WHERE p.data_pedido BETWEEN :dataInicio AND :dataFim';
-      queryResumo += whereClause;
-      queryMaisVendidos += whereClause;
-      params.dataInicio = dataInicio;
-      params.dataFim = `${dataFim} 23:59:59`;
-    }
+      // 2. Extrai IDs para buscas limpas (Evita JOINs complexos no Postgres)
+      const idsPedidos = pedidos.map(p => p.id_pedido);
+      const idsUsuarios = [...new Set(pedidos.map(p => p.id_usuario).filter(id => id != null))];
 
-    // Finaliza a query de mais vendidos com agrupamento e ordenação
-    queryMaisVendidos += `
-        GROUP BY pr.id_produto, pr.nome
-        ORDER BY total_vendido DESC
-        LIMIT 5
-    `;
+      const itensQuery = await PedidoItem.findAll({
+        where: { id_pedido: { [Op.in]: idsPedidos } },
+        include: [{ model: ProdutoORM, attributes: ['nome'] }],
+        raw: true
+      });
 
-    const resumo = await sequelize.query(queryResumo, { replacements: params, type: QueryTypes.SELECT });
-    const maisVendidos = await sequelize.query(queryMaisVendidos, { replacements: params, type: QueryTypes.SELECT });
-
-    return {
-        resumo: resumo[0],
-        maisVendidos: maisVendidos.map(item => ({ ...item, total_vendido: Number(item.total_vendido) }))
-    };
-  },
-
-  buscarPedidosPorUsuario: async (idUsuario) => {
-    // 1. Busca os dados cruzando as tabelas corretas (pedido, pedido_item, produto)
-    const query = `
-      SELECT 
-          p.id_pedido, 
-          p.data_pedido, 
-          pi.quantidade, 
-          pi.preco_unitario, 
-          pr.nome AS nome_produto
-      FROM pedido p
-      INNER JOIN pedido_item pi ON p.id_pedido = pi.id_pedido
-      INNER JOIN produto pr ON pi.id_produto = pr.id_produto
-      WHERE p.id_usuario = :idUsuario
-      ORDER BY p.data_pedido DESC
-    `;
-    
-    const resultados = await sequelize.query(query, { replacements: { idUsuario }, type: QueryTypes.SELECT });
-
-    // 2. Agrupa os itens e calcula o valor total de cada pedido
-    const pedidosAgrupados = {};
-
-    resultados.forEach(linha => {
-        if (!pedidosAgrupados[linha.id_pedido]) {
-            pedidosAgrupados[linha.id_pedido] = {
-                id_pedido: linha.id_pedido,
-                data_pedido: linha.data_pedido,
-                valor_total: 0,
-                itens: [] // Inicia o carrinho do pedido vazio
-            };
-        }
-
-        // O PostgreSQL pode retornar numeric como string, garantimos com Number()
-        pedidosAgrupados[linha.id_pedido].valor_total += (Number(linha.quantidade) * Number(linha.preco_unitario));
-        pedidosAgrupados[linha.id_pedido].itens.push({
-            nome_produto: linha.nome_produto,
-            quantidade: linha.quantidade,
-            preco_unitario: linha.preco_unitario
+      let usuariosQuery = [];
+      if (idsUsuarios.length > 0) {
+        usuariosQuery = await Usuario.findAll({
+          where: { id_usuario: { [Op.in]: idsUsuarios } },
+          attributes: ['id_usuario', 'nome'],
+          raw: true
         });
-    });
+      }
 
-    // 3. Retorna apenas os valores processados na forma de array
-    return Object.values(pedidosAgrupados);
-  },
+      const usuariosMap = usuariosQuery.reduce((acc, u) => {
+        acc[u.id_usuario] = u.nome;
+        return acc;
+      }, {});
 
-  buscarRelatorioDetalhado: async (dataInicio, dataFim) => {
-    let query = `
-        SELECT 
-            p.id_pedido, 
-            p.data_pedido, 
-            COALESCE(u.nome, 'Cliente não identificado') AS cliente,
-            pi.quantidade, 
-            pi.preco_unitario, 
-            pr.nome AS nome_produto
-        FROM pedido p
-        LEFT JOIN usuario u ON p.id_usuario = u.id_usuario
-        INNER JOIN pedido_item pi ON p.id_pedido = pi.id_pedido
-        INNER JOIN produto pr ON pi.id_produto = pr.id_produto
-    `;
-    const params = {};
-    if (dataInicio && dataFim) {
-      query += ' WHERE p.data_pedido BETWEEN :dataInicio AND :dataFim';
-      params.dataInicio = dataInicio;
-      params.dataFim = `${dataFim} 23:59:59`;
-    }
-    query += ' ORDER BY p.data_pedido DESC';
+      let receitaTotal = 0;
+      const produtosContagem = {};
 
-    const resultados = await sequelize.query(query, { replacements: params, type: QueryTypes.SELECT });
-    const pedidosAgrupados = {};
+      // 3. Processa os cálculos em memória JavaScript
+      const itensPorPedido = itensQuery.reduce((acc, item) => {
+        if (!acc[item.id_pedido]) acc[item.id_pedido] = [];
+        acc[item.id_pedido].push(item);
 
-    resultados.forEach(linha => {
-        if (!pedidosAgrupados[linha.id_pedido]) {
-            pedidosAgrupados[linha.id_pedido] = { id_pedido: linha.id_pedido, data_pedido: linha.data_pedido, cliente: linha.cliente, valor_total: 0, itens: [] };
+        const subtotal = Number(item.quantidade) * Number(item.preco_unitario);
+        receitaTotal += subtotal;
+
+        // Ajustado para casar com o modelo 'produto' (letra minúscula/maiúscula conforme o Sequelize retorna em raw: true)
+        const nomeProduto = item['produto.nome'] || item['Produto.nome'] || 'Produto Excluído';
+
+        if (!produtosContagem[item.id_produto]) {
+          produtosContagem[item.id_produto] = { nome: nomeProduto, total: 0 };
         }
-        pedidosAgrupados[linha.id_pedido].valor_total += (Number(linha.quantidade) * Number(linha.preco_unitario));
-        pedidosAgrupados[linha.id_pedido].itens.push({
-            nome_produto: linha.nome_produto, quantidade: linha.quantidade, preco_unitario: linha.preco_unitario
-        });
-    });
+        produtosContagem[item.id_produto].total += Number(item.quantidade);
 
-    return Object.values(pedidosAgrupados);
+        return acc;
+      }, {});
+
+      // 4. Monta a lista Detalhada para a tabela do front e PDF
+      const pedidosDetalhados = pedidos.map(p => {
+        let valorTotalPedido = 0;
+        if (itensPorPedido[p.id_pedido]) {
+          valorTotalPedido = itensPorPedido[p.id_pedido].reduce((soma, i) => soma + (Number(i.quantidade) * Number(i.preco_unitario)), 0);
+        }
+        return {
+          id_pedido: p.id_pedido,
+          nome_cliente: usuariosMap[p.id_usuario] || 'Cliente não identificado',
+          data_pedido: p.data_pedido,
+          valor_total: valorTotalPedido
+        };
+      });
+
+      // 5. Ordena o ranking de vendas para os gráficos
+      const maisVendidosArray = Object.values(produtosContagem)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5)
+        .map(p => ({ nome: p.nome, total_vendido: p.total }));
+
+      return {
+        resumo: {
+          total_pedidos: totalPedidos,
+          receita_total: receitaTotal
+        },
+        maisVendidos: maisVendidosArray,
+        pedidosDetalhados: pedidosDetalhados.sort((a, b) => new Date(b.data_pedido) - new Date(a.data_pedido))
+      };
+    } catch (error) {
+      console.error("Erro crítico ao buscar dados do dashboard:", error);
+      throw error;
+    }
   }
 };
 

@@ -2,7 +2,6 @@ import { Produto as ProdutoORM } from '../config/orm.js';
 
 const Produto = {
   listarTodos: async () => {
-    // Retorna todos os produtos direto do Sequelize (raw: true garante um objeto simples JSON)
     return await ProdutoORM.findAll({ raw: true });
   },
 
@@ -15,19 +14,23 @@ const Produto = {
     
     const novoProduto = await ProdutoORM.create({
       nome,
-      preco,
-      estoque,
+      preco: Number(preco),
+      estoque: parseInt(estoque, 10),
       descricao,
       imagem: nomeImagem || null
     });
 
-    // Simula o retorno 'insertId' do mysql2 para o Controller continuar funcionando intacto
     return { insertId: novoProduto.id_produto };
   },
 
   atualizar: async (id, dados, nomeImagem) => {
     const { nome, preco, estoque, descricao } = dados;
-    const camposAtualizados = { nome, preco, estoque, descricao };
+    const camposAtualizados = {};
+    
+    if (nome) camposAtualizados.nome = nome;
+    if (preco) camposAtualizados.preco = Number(preco);
+    if (estoque) camposAtualizados.estoque = parseInt(estoque, 10);
+    if (descricao) camposAtualizados.descricao = descricao;
     if (nomeImagem) camposAtualizados.imagem = nomeImagem;
 
     const [linhasAfetadas] = await ProdutoORM.update(camposAtualizados, { where: { id_produto: id } });

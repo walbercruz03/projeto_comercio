@@ -28,7 +28,6 @@ export const cadastrarProduto = async (req, res) => {
     
     const nomeImagem = req.file.filename; 
     await Produto.cadastrar(req.body, nomeImagem);
-    
     res.status(201).json({ mensagem: "Produto cadastrado com sucesso!", imagem: nomeImagem });
   } catch (error) {
     console.error(error);
@@ -42,7 +41,7 @@ export const atualizarProduto = async (req, res) => {
     const nomeImagem = req.file ? req.file.filename : null;
 
     await Produto.atualizar(id, req.body, nomeImagem);
-    res.json({ mensagem: "Produto atualizado com sucesso!" });
+    res.json({ mensagem: "Produto updated com sucesso!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao atualizar produto." });
@@ -54,12 +53,10 @@ export const excluirProduto = async (req, res) => {
     const { id } = req.params;
     const result = await Produto.excluir(id);
     
-    if (result.affectedRows === 0) {
-        return res.status(404).json({ erro: "Produto não encontrado para exclusão." });
-    }
+    if (result.affectedRows === 0) return res.status(404).json({ erro: "Produto não encontrado." });
     res.json({ mensagem: "Produto excluído com sucesso!" });
   } catch (error) {
-    console.error("Erro ao excluir produto:", error);
+    console.error(error);
     res.status(500).json({ erro: "Erro interno ao tentar excluir o produto." });
   }
 };

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/meus_pedidos.css">
+    <style>
+        /* Injeção das variáveis no Modo Escuro */
+        body.dark-mode {
+            --bg-body: #1e1e24;
+            --bg-header: #2b2b36;
+            --bg-card: #2b2b36;
+            --text-color: #f1f1f1;
+            --border-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="main-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h1><i class="fa-solid fa-box-archive"></i> Meus Pedidos</h1>
+                
+                <!-- Botão de Troca de Tema -->
+                <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px; font-size: 20px; cursor: pointer;">
+                    <label for="themeToggle" style="cursor: pointer;" title="Mudar Tema"><i class="fa-solid fa-circle-half-stroke"></i></label>
+                    <input type="checkbox" id="themeToggle" style="display:none;">
+                </div>
+            </div>
+            <a href="/produtos" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Voltar para a Loja</a>
+        </header>
+
+        <main id="listaPedidos">
+            <% if (!usuarioLogado) { %>
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    Você precisa estar logado para ver seus pedidos. <a href="/index.html">Faça o login</a>.
+                </p>
+            <% } else if (pedidos && pedidos.length > 0) { %>
+                <% pedidos.forEach(function(pedido) { 
+                    const dataObj = new Date(pedido.data_pedido);
+                    const dataPedido = dataObj.toLocaleDateString('pt-BR') + ' às ' + dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                %>
+                    <div class="pedido-card">
+                        <div class="pedido-header">
+                            <h3>Pedido #<%= pedido.id_pedido %></h3>
+                            <span><%= dataPedido %></span>
+                        </div>
+                        <div class="pedido-body">
+                            <% if (pedido.itens && pedido.itens.length > 0) { %>
+                                <% pedido.itens.forEach(function(item) { %>
+                                    <div class="pedido-item">
+                                        <span><%= item.quantidade %>x <%= item.nome_produto %></span>
+                                        <span>R$ <%= parseFloat(item.preco_unitario * item.quantidade).toFixed(2) %></span>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                        <div class="pedido-footer">
+                            Total: R$ <%= parseFloat(pedido.valor_total).toFixed(2) %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p style="text-align: center; color: #666; padding: 20px;">Você ainda não fez nenhum pedido.</p>
+            <% } %>
+        </main>
+    </div>
+
+    <script src="/js/meus_pedidos.js"></script>
+    <script src="/js/apresentacao.js"></script>
+</body>
+</html>

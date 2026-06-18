@@ -42,24 +42,13 @@ let btnEnviar = document.getElementById("enviar");
                         } catch (e) { console.error(e); }
                     }
 
-                    sessionStorage.setItem('idUsuarioLogado', res.body.usuario.id || res.body.usuario.id_usuario);
-                    sessionStorage.setItem('emailUsuarioLogado', emailFormatado);
-                    sessionStorage.setItem('tipoUsuario', tipo_bd || 'cliente');
-
-                    // DEBUG: Pressione F12 e veja no Console se o tipo_usuario está vindo como 'admin'
-                    console.log("Dados do usuário vindos do banco:", res.body.usuario);
-                    
-                    // VALIDAÇÃO PELO TIPO DE USUÁRIO OU E-MAIL FIXO (Chave Mestra)
+                    // A SEGURANÇA E O ID AGORA FICAM NO COOKIE JWT DO BACKEND!
                     if (tipo_bd === "admin_principal" || tipo_bd === "admin" || emailFormatado === "admin@gmail.com") {
-                        // Se o tipo_usuario falhou no banco, salvamos manualmente no front-end para as outras telas funcionarem
-                        if (emailFormatado === "admin@gmail.com" && tipo_bd !== "admin_principal") {
-                            sessionStorage.setItem('tipoUsuario', 'admin_principal');
-                        }
                         alert("Bem-vindo, Administrador! Acessando o painel...");
-                        window.location.href = "apresentacao.html";
+                        window.location.href = "/dashboard";
                     } else {
                         alert(`Bem-vindo, ${res.body.usuario.nome}! Login realizado com sucesso.`);
-                        window.location.href = "apresentacao.html";
+                        window.location.href = "/produtos"; // Rota Visual EJS
                     }
                 } else {
                     alert(res.body.erro || "E-mail ou senha incorretos! Tente novamente.");

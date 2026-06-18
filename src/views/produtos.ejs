@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Produtos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/apresentacao.css">
+</head>
+<body>
+    <!-- HEADER RESTAURADO PARA O CSS ORIGINAL FUNCIONAR -->
+    <header class="main-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--bg-header, #fff); box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; z-index: 1001;">
+        <button id="btnMenu" style="background: none; border: none; font-size: 24px; cursor: pointer;"><i class="fa-solid fa-bars"></i></button>
+        <h1 style="margin: 0; font-size: 24px;"><i class="fa-solid fa-store"></i> Loja Virtual</h1>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label for="themeToggle" style="cursor: pointer;"><i class="fa-solid fa-moon"></i></label>
+            <input type="checkbox" id="themeToggle" style="display:none;">
+        </div>
+    </header>
+
+    <!-- MENU LATERAL (SIDEBAR) RESTAURADO COM SSR -->
+    <div id="menuOverlay" class="overlay"></div>
+    <nav id="sidebarMenu" class="sidebar">
+        <div id="perfilUsuario" style="padding: 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #ddd;">
+            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                <i class="fa-solid fa-user-shield"></i> Administrador
+            <% } else { %>
+                <i class="fa-solid fa-user"></i> Cliente
+            <% } %>
+        </div>
+        <div id="itensMenu" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                <div class="menu-header" style="font-size: 14px; text-transform: uppercase; opacity: 0.7;">Gestão de Produtos</div>
+                <a href="/admin.html" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-plus"></i> Cadastrar Produto</a>
+                <a href="/produtos" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-list-check"></i> Catálogo</a>
+                <div class="menu-header" style="font-size: 14px; text-transform: uppercase; margin-top: 15px; opacity: 0.7;">Administração</div>
+                <a href="/gerenciar_admins" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-users-gear"></i> Gerenciar Admins</a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <% } else { %>
+                <div class="menu-header" style="font-size: 14px; text-transform: uppercase; opacity: 0.7;">Minha Conta</div>
+                <a href="/carrinho.html" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-cart-shopping"></i> Meu Carrinho</a>
+                <a href="/meus_pedidos" style="text-decoration: none; color: inherit;"><i class="fa-solid fa-box-archive"></i> Meus Pedidos</a>
+            <% } %>
+            <button id="btnSair" style="margin-top: 20px; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+            </button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 1200px; margin: 80px auto 20px; padding: 20px;">
+        <!-- Grid Dinâmica Renderizada pelo Node.js -->
+        <div id="listaProdutos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+            <% if (produtos && produtos.length > 0) { %>
+                <% produtos.forEach(function(prod) { 
+                    const caminhoImagem = prod.imagem ? '/uploads/' + prod.imagem : 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400';
+                %>
+                    <div class="card-produto" style="border: 1px solid var(--border-color, #ddd); border-radius: 8px; padding: 15px; background: var(--bg-card, #fff);">
+                        <img src="<%= caminhoImagem %>" alt="<%= prod.nome %>" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
+                        <div class="produto-info" style="margin-top: 15px;">
+                            <h3><%= prod.nome %></h3>
+                            <p style="font-size: 14px; opacity: 0.8;"><%= prod.descricao %></p>
+                            <div class="preco" style="font-size: 20px; font-weight: bold; color: #28a745; margin: 10px 0;">
+                                R$ <%= parseFloat(prod.preco).toFixed(2).replace('.', ',') %>
+                            </div>
+                            
+                            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                                <div class="admin-actions" style="display: flex; gap: 10px;">
+                                    <button class="btn-edit" onclick="window.location.href='/admin.html?edit=<%= prod.id_produto %>'" style="flex: 1; padding: 8px; background: #ffc107; border: none; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-pen-to-square"></i> Editar</button>
+                                    <button class="btn-delete" onclick="excluirProduto(<%= prod.id_produto %>, '<%= prod.nome %>')" style="flex: 1; padding: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i> Excluir</button>
+                                </div>
+                            <% } else { %>
+                                <button class="btn-comprar" onclick="comprarProduto(<%= prod.id_produto %>, '<%= prod.nome %>', <%= prod.preco %>)" style="width: 100%; padding: 10px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p>Nenhum produto cadastrado no estoque.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Usa o JS original que controla Menu, Tema e ações -->
+    <script src="/js/apresentacao.js"></script>
+</body>
+</html>
