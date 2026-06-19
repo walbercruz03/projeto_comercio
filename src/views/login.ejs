@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Comércio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="/css/login.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -31,14 +31,13 @@
         </div>
 
         <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
-            <a href="esqueceu_senha.html" style="font-size: 14px; color: #007bff; text-decoration: none;">Esqueceu sua senha?</a>
+            <a href="/recuperar-senha" style="font-size: 14px; color: #007bff; text-decoration: none;">Esqueceu sua senha?</a>
         </div>
         
         <button id="enviar">Entrar no Sistema</button>
 
         <div class="divisor" style="text-align: center; margin: 15px 0; color: #888; font-size: 14px;">ou</div>
 
-        <!-- Botão de Login com Google -->
         <div class="google-login-container" style="display: flex; justify-content: center; margin-bottom: 15px;">
             <div id="g_id_onload"
                  data-client_id="SEU_ID_REAL_COPIADO_DO_GOOGLE.apps.googleusercontent.com"
@@ -57,11 +56,9 @@
             </div>
         </div>
 
-        <p class="signup-text">Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
+        <p class="signup-text">Não tem uma conta? <a href="/cadastro">Cadastre-se aqui</a></p>
     </div>
 
-    <script src="js/login.js">
-        
-    </script>
+    <script src="/js/login.js"></script>
 </body>
 </html>

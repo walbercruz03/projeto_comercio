@@ -1,7 +1,67 @@
 import jwt from 'jsonwebtoken';
 
-// Verifica o cookie, se for válido, extrai os dados (ID, email, tipo) e salva em req.usuario
+const JWT_SECRET = process.env.JWT_SECRET || 'chave_super_secreta_123';
+
+// 1. 🌐 PARA ROTAS DE API (Usado no pedidoRoutes.js) - Retorna JSON em caso de erro
 export const verificarToken = (req, res, next) => {
+    const token = req.cookies.token;
+    
+    if (!token) {
+        return res.status(401).json({ erro: "Acesso negado. Token não fornecido!" });
+    }
+    
+    try {
+        const decodificado = jwt.verify(token, JWT_SECRET);
+        req.usuario = decodificado;
+        next();
+    } catch (error) {
+        return res.status(401).json({ erro: "Token inválido ou expirado!" });
+    }
+};
+
+// 2. 🖥️ PARA VIEWS/TELAS (Usado no viewRoutes.js) - Redireciona para o login se falhar
+export const verificarTokenView = (req, res, next) => {
+    const token = req.cookies.token;
+    
+    if (!token) {
+        return res.redirect('/login');
+    }
+    
+    try {
+        const decodificado = jwt.verify(token, JWT_SECRET);
+        req.usuario = decodificado;
+        next();
+    } catch (error) {
+        res.clearCookie('token');
+        return res.redirect('/login');
+    }
+};
+
+// 3. 🛡️ PARA VIEWS ADMINISTRATIVAS (Usado no viewRoutes.js) - Bloqueia se não for admin
+export const apenasAdminView = (req, res, next) => {
+    const token = req.cookies.token;
+    
+    if (!token) {
+        return res.redirect('/login');
+    }
+
+    try {
+        const decodificado = jwt.verify(token, JWT_SECRET);
+        req.usuario = decodificado;
+
+        if (req.usuario && (req.usuario.tipo_usuario === 'admin' || req.usuario.tipo_usuario === 'admin_principal' || req.usuario.email === 'admin@gmail.com')) {
+            return next();
+        }
+        
+        return res.status(403).send("Acesso negado. Esta página é restrita para administradores.");
+    } catch (error) {
+        res.clearCookie('token');
+        return res.redirect('/login');
+    }
+};
+
+// 4. 🔓 PARA VIEWS OPCIONAIS (Usado na rota /apresentacao) - Não barra o usuário se não estiver logado
+export const verificarTokenOpcional = (req, res, next) => {
     const token = req.cookies.token;
     
     if (!token) {
@@ -10,22 +70,11 @@ export const verificarToken = (req, res, next) => {
     }
     
     try {
-        const decodificado = jwt.verify(token, process.env.JWT_SECRET || 'chave_super_secreta_123');
+        const decodificado = jwt.verify(token, JWT_SECRET);
         req.usuario = decodificado;
         next();
     } catch (error) {
-        req.usuario = null; // Token inválido ou expirado
+        req.usuario = null;
         next();
     }
-};
-
-// Bloqueia imediatamente o acesso se o usuário não for Administrador
-export const apenasAdmin = (req, res, next) => {
-    verificarToken(req, res, () => {
-        if (req.usuario && (req.usuario.tipo_usuario === 'admin' || req.usuario.tipo_usuario === 'admin_principal' || req.usuario.email === 'admin@gmail.com')) {
-            next();
-        } else {
-            res.status(403).send("Acesso negado. Esta página é restrita para administradores.");
-        }
-    });
 };

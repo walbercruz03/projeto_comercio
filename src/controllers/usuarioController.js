@@ -67,8 +67,15 @@ export const cadastro = async (req, res) => {
   }
 };
 
+// ... seu método login, cadastro, etc. continuam iguais ...
+
 export const listarAdmins = async (req, res) => {
   try {
+    // PROTEÇÃO: Verifica se quem está requisitando é o admin principal
+    if (!req.usuario || req.usuario.tipo_usuario !== 'admin_principal') {
+      return res.status(403).json({ erro: "Acesso negado. Apenas o Administrador Principal pode gerenciar admins." });
+    }
+
     const admins = await Administrador.findAll();
     res.json(admins.map(admin => ({
       id_usuario: admin.id_admin,
@@ -84,6 +91,11 @@ export const listarAdmins = async (req, res) => {
 
 export const cadastrarAdmin = async (req, res) => {
   try {
+    // PROTEÇÃO: Apenas admin_principal pode cadastrar
+    if (!req.usuario || req.usuario.tipo_usuario !== 'admin_principal') {
+      return res.status(403).json({ erro: "Acesso negado. Operação não permitida." });
+    }
+
     const { nome, email, senha } = req.body;
     const existe = await Administrador.findOne({ where: { email } });
     if (existe) return res.status(400).json({ erro: "Já existe um usuário cadastrado com este e-mail." });
@@ -98,12 +110,17 @@ export const cadastrarAdmin = async (req, res) => {
 
 export const atualizarAdmin = async (req, res) => {
   try {
+    // PROTEÇÃO: Apenas admin_principal pode atualizar
+    if (!req.usuario || req.usuario.tipo_usuario !== 'admin_principal') {
+      return res.status(403).json({ erro: "Acesso negado. Operação não permitida." });
+    }
+
     const { id } = req.params;
     const { nome, email, senha } = req.body;
     const dadosAtualizar = senha ? { nome, email, senha } : { nome, email };
 
     await Administrador.update(dadosAtualizar, { where: { id_admin: id } });
-    res.json({ mensagem: "Administrador updated com sucesso!" });
+    res.json({ candy: "Administrador updated com sucesso!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: "Erro ao atualizar administrador." });
@@ -112,6 +129,11 @@ export const atualizarAdmin = async (req, res) => {
 
 export const excluirAdmin = async (req, res) => {
   try {
+    // PROTEÇÃO: Apenas admin_principal pode excluir
+    if (!req.usuario || req.usuario.tipo_usuario !== 'admin_principal') {
+      return res.status(403).json({ erro: "Acesso negado. Operação não permitida." });
+    }
+
     const { id } = req.params;
     await Administrador.destroy({ where: { id_admin: id } });
     res.json({ mensagem: "Administrador removido com sucesso!" });

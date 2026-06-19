@@ -2,23 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================
     // 1. ELEMENTOS DO DOM E ESTADO INICIAL
     // =================================================
-    const emailUsuario = sessionStorage.getItem('emailUsuarioLogado');
-    const idUsuarioLogado = sessionStorage.getItem('idUsuarioLogado');
-    const tipoUsuario = sessionStorage.getItem('tipoUsuario');
-    const isAdmin = (tipoUsuario === "admin_principal" || tipoUsuario === "admin");
-    const isMainAdmin = (tipoUsuario === "admin_principal");
-
     const themeToggle = document.getElementById('themeToggle');
     const body = document.body;
     const btnMenu = document.getElementById('btnMenu');
     const sidebarMenu = document.getElementById('sidebarMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    const itensMenu = document.getElementById('itensMenu');
-    const perfilUsuario = document.getElementById('perfilUsuario');
-    const productGrid = document.getElementById('listaProdutos');
-    const categoryContainer = document.getElementById('categoryFilters');
-
-    let allProducts = []; // Armazena todos os produtos para filtragem
 
     // =================================================
     // 2. LÓGICA DE TEMA (DARK/LIGHT MODE)
@@ -46,10 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
 
-    // Removida a sobreposição de HTML. O EJS (Backend) fará a montagem segura do Menu e Produtos!
-
     // =================================================
-    // 5. FUNÇÕES DE AÇÃO (COMPRAR, EXCLUIR, ETC)
+    // 3. FUNÇÕES DE AÇÃO (COMPRAR, EXCLUIR, ETC)
     // =================================================
     window.comprarProduto = function(id, nome, preco) {
         let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
@@ -72,15 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.ok) {
                         alert("Produto removido com sucesso!");
                         window.location.reload();
+                    } else if (res.status === 403) {
+                        alert("Acesso negado. Apenas o Administrador Principal pode realizar esta ação.");
                     } else {
-                        alert("Erro ao excluir o produto.");
+                        alert("Erro ao excluir o produto. Verifique suas permissões.");
                     }
-                });
+                })
+                .catch(err => console.error("Erro na requisição:", err));
         }
     };
 
     // =================================================
-    // 6. CONTROLES GERAIS DA UI (MENU, LOGOUT)
+    // 4. CONTROLES GERAIS DA UI (MENU, LOGOUT)
     // =================================================
     const toggleMenu = () => {
         if(sidebarMenu) sidebarMenu.classList.toggle('active');
@@ -93,11 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSair = document.getElementById('btnSair');
     if(btnSair) {
         btnSair.addEventListener('click', () => {
+            // Limpa o cookie limpando o caminho raiz
             document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             sessionStorage.clear();
             localStorage.removeItem('carrinho');
-            localStorage.removeItem('theme'); // Limpa a preferência do tema ao sair
-            window.location.href = "/index.html";
+            localStorage.removeItem('theme');
+            
+            // CORRIGIDO: Redireciona para a rota amigável do servidor
+            window.location.href = "/login"; 
         });
     }
 });
