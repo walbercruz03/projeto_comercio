@@ -4,24 +4,23 @@ import { verificarTokenView, apenasAdminView, verificarTokenOpcional } from '../
 
 const router = Router();
 
-// 🔐 Telas Administrativas trancadas (redirecionam para o login se falhar)
-router.get('/dashboard', apenasAdminView, viewController.renderDashboard); 
-router.get('/gerenciar_admins', apenasAdminView, viewController.renderGerenciarAdmins); 
+// 🔓 Telas totalmente públicas ou com token opcional (Vitrine Aberta)
+router.get('/', verificarTokenOpcional, viewController.renderProdutos); 
+router.get('/produtos', verificarTokenOpcional, viewController.renderProdutos); 
+router.get('/apresentacao', verificarTokenOpcional, viewController.renderHome); 
 
-// 🆕 ROTAS DO PAINEL DO ADMIN (Cadastrar/Editar Produtos)
-router.get('/admin', apenasAdminView, viewController.renderAdminPainel);
-router.get('/admin.html', apenasAdminView, viewController.renderAdminPainel); // Compatibilidade com links .html antigos
-
-// 🛒 Catálogo e Pedidos exigem login do cliente
-router.get('/produtos', verificarTokenView, viewController.renderProdutos); 
-router.get('/meus_pedidos', verificarTokenView, viewController.renderMeusPedidos);
-router.get('/carrinho', verificarTokenView, viewController.renderCarrinho);
-
-// 🔓 Telas totalmente públicas
-router.get('/', viewController.renderLogin); 
 router.get('/login', viewController.renderLogin);           
 router.get('/cadastro', viewController.renderCadastro); 
-router.get('/apresentacao', verificarTokenOpcional, viewController.renderHome); 
 router.get('/recuperar-senha', viewController.renderRecuperarSenha);
+
+// 🔐 Telas que exigem login obrigatório do cliente
+router.get('/meus_pedidos', verificarTokenView, viewController.renderMeusPedidos);
+router.get('/carrinho', verificarTokenView, viewController.renderCarrinho); // O carrinho pode ser visto, mas vamos travar a finalização
+
+// 🔐 Telas Administrativas trancadas
+router.get('/dashboard', apenasAdminView, viewController.renderDashboard); 
+router.get('/gerenciar_admins', apenasAdminView, viewController.renderGerenciarAdmins); 
+router.get('/admin', apenasAdminView, viewController.renderAdminPainel);
+router.get('/admin.html', apenasAdminView, viewController.renderAdminPainel);
 
 export default router;

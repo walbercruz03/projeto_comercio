@@ -36,15 +36,18 @@
             totalContainer.innerText = `R$ ${totalAcumulado.toFixed(2)}`;
         }
 
-        // DISPARA O PEDIDO EM LOTE COMPLETO PARA O DOCKER E DEPOIS PARA O WHATSAPP
+        // DISPARA O PEDIDO EM LOTE COMPLETO PARA O POSTGRES E DEPOIS PARA O WHATSAPP
         function enviarPedidoAoBanco() {
-            const idUsuarioLogado = sessionStorage.getItem('idUsuarioLogado') || 1;
             const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
-            if(carrinho.length === 0) return;
+            if (carrinho.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
 
+            // ⚠️ REVISÃO DE SEGURANÇA: Não enviamos mais o id_usuario fixo ou do sessionStorage no body.
+            // O backend (pedidoController.js) já pega o ID real direto do Token JWT decodificado por segurança.
             const dadosPedido = {
-                id_usuario: idUsuarioLogado,
                 itens: carrinho 
             };
 
@@ -54,18 +57,36 @@
                 body: JSON.stringify(dadosPedido)
             })
             .then(res => {
-                if (res.status === 201) {
-                    // Se salvou no MySQL com sucesso, gera a mensagem do WhatsApp antes de limpar o carrinho
-                    enviarWhatsAppVendedor(carrinho);
+                // 🔒 BLOQUEIO OPEN SPEC: Se a API responder 401 (Não autenticado), barramos aqui
+                if (res.status === 401) {
+                    alert("Você precisa estar logado para finalizar a sua compra. Redirecionando para a página de login...");
+                    window.location.href = "/login";
+                    return null; // Cancela a cadeia do .then
+                }
 
-                    alert("Sucesso! Pedido gravado no banco de dados. Redirecionando para o WhatsApp do vendedor...");
-                    localStorage.removeItem('carrinho'); // Limpa a memória local
-                    window.location.href = "/produtos";
+                if (res.status === 201) {
+                    return res.json();
                 } else {
-                    alert("Erro ao processar o fechamento do pedido no servidor.");
+                    throw new Error("Erro ao processar o fechamento do pedido no servidor.");
                 }
             })
-            .catch(err => console.error("Erro:", err));
+            .then(dados => {
+                if (!dados) return; // Se caiu no 401, interrompe aqui
+
+                // Se salvou no banco com sucesso, gera a mensagem do WhatsApp
+                enviarWhatsAppVendedor(carrinho);
+
+                alert("Sucesso! Pedido gravado no banco de dados. Redirecionando para o WhatsApp do vendedor...");
+                localStorage.removeItem('carrinho'); // Limpa a memória local do carrinho
+                window.location.href = "/meus_pedidos"; // Redireciona para o histórico do cliente
+            })
+            .catch(err => {
+                if (err.message !== "Erro ao processar o fechamento do pedido no servidor.") {
+                    console.error("Erro:", err);
+                } else {
+                    alert(err.message);
+                }
+            });
         }
 
         // NOVA FUNÇÃO: Monta o texto e redireciona para o WhatsApp

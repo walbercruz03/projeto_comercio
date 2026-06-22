@@ -8,11 +8,11 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
-    dialect: 'postgres', // Mudado de mysql para postgres!
-    logging: false,      //Desativa logs de SQL no terminal (opcional)
+    dialect: 'postgres', 
+    logging: false,      
     define: {
-      freezeTableName: true, // Garante que o Sequelize não mude o nome das tabelas para o plural
-      timestamps: false      // Desativa as colunas createdAt e updatedAt (já que seu init.sql não tem)
+      freezeTableName: true, 
+      timestamps: false      
     }
   }
 );
@@ -60,11 +60,19 @@ const PedidoItem = sequelize.define('pedido_item', {
   preco_unitario: DataTypes.DECIMAL(10, 2)
 });
 
+// 🆕 NOVO MODELO: Customização de Identidade Visual da Loja
+const Configuracao = sequelize.define('configuracao_sistema', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  chave: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+  valor: { type: DataTypes.TEXT, allowNull: false }
+});
+
 // --- DEFINIÇÃO DOS RELACIONAMENTOS (Associações) ---
 Pedido.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 Pedido.hasMany(PedidoItem, { foreignKey: 'id_pedido' });
 PedidoItem.belongsTo(Pedido, { foreignKey: 'id_pedido' });
 PedidoItem.belongsTo(Produto, { foreignKey: 'id_produto' });
 
-export { sequelize, Usuario, Administrador, Produto, Pedido, PedidoItem };
+// ⚠️ Atualizado para exportar também o novo modelo Configuracao
+export { sequelize, Usuario, Administrador, Produto, Pedido, PedidoItem, Configuracao };
 export default sequelize;

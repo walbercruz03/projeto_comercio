@@ -56,3 +56,19 @@ INSERT INTO produto (nome, descricao, preco, estoque, imagem, categoria) VALUES
 ('Mouse Gamer', 'Mouse de 12000 DPI com botões laterais.', 150.00, 20, NULL, 'Periféricos'),
 ('Monitor 24" Full HD', 'Monitor 75Hz com painel IPS e design sem bordas.', 850.00, 10, NULL, 'Monitores')
 ON CONFLICT DO NOTHING;
+
+-- 5. Tabela de Configurações Visuais do Sistema (Customização do Admin)
+CREATE TABLE IF NOT EXISTS configuracao_sistema (
+  id SERIAL PRIMARY KEY,
+  chave VARCHAR(50) UNIQUE NOT NULL,
+  valor TEXT NOT NULL
+);
+
+-- Inserção dos valores visuais padrões iniciais da loja
+INSERT INTO configuracao_sistema (chave, valor) VALUES 
+('logo_url', '/images/logo-placeholder.png'),
+-- Cor de fundo padrão (Modo Claro)
+('cor_fundo', '#ffffff'),
+-- Cor dos botões e destaques (Azul padrão do seu Bootstrap/CSS)
+('cor_primaria', '#0d6efd')
+ON CONFLICT (chave) DO NOTHING;

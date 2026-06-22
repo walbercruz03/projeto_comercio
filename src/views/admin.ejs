@@ -3,45 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Administrador - Cadastro</title>
+    <title>Painel do Administrador - Sistema</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/administrador.css">
+    
+    <style>
+        body {
+            background-color: <%= layout.cor_fundo_dashboard %> !important;
+            transition: background-color 0.3s ease;
+        }
+        /* Aplica a cor primária dinâmica nos botões e na aba ativa */
+        .btn-enviar, .btn-customizar, .tab-btn.active {
+            background-color: <%= layout.cor_primaria %> !important;
+        }
+        .tab-btn.active {
+            color: white !important;
+            border-color: <%= layout.cor_primaria %> !important;
+        }
+    </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Painel do Admin - Cadastrar Produto</h1>
-        
-        <form id="formProduto">
-            <div class="form-group">
-                <label for="nome">Nome do Produto</label>
-                <input type="text" id="nome" required placeholder="Ex: Headset Gamer HyperX">
-            </div>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <img src="<%= layout.logo_url %>" alt="Logo Empresa" style="max-height: 80px; object-fit: contain;">
+        </div>
 
-            <div class="form-group">
-                <label for="preco">Preço (R$)</label>
-                <input type="number" id="preco" step="0.01" required placeholder="Ex: 349.90">
-            </div>
+       <div class="admin-menu-tabs">
+            <button class="tab-btn active" onclick="alternarAba('aba-produtos', this)">
+                <i class="fa-solid fa-box"></i> Produtos
+            </button>
+            <button class="tab-btn" onclick="alternarAba('aba-customizacao', this)">
+                <i class="fa-solid fa-palette"></i> Customizar Loja
+            </button>
+        </div>      
 
-            <div class="form-group">
-                <label for="estoque">Quantidade em Estoque</label>
-                <input type="number" id="estoque" required placeholder="Ex: 10">
-            </div>
+        <div id="aba-produtos" class="tab-conteudo active">
+            <h2 class="titulo-secao">Cadastrar Novo Produto</h2>
+            <form id="formProduto">
+                <div class="form-group">
+                    <label for="nome">Nome do Produto</label>
+                    <input type="text" id="nome" required placeholder="Ex: Headset Gamer HyperX">
+                </div>
 
-            <div class="form-group">
-                <label for="descricao">Descrição</label>
-                <textarea id="descricao" required placeholder="Digite os detalhes técnicos do produto..."></textarea>
-            </div>
+                <div class="form-group">
+                    <label for="preco">Preço (R$)</label>
+                    <input type="number" id="preco" step="0.01" required placeholder="Ex: 349.90">
+                </div>
 
-            <div class="form-group">
-                <label for="imagem">Imagem do Produto</label>
-                <input type="file" id="imagem" accept="image/*" required>
-            </div>
+                <div class="form-group">
+                    <label for="estoque">Quantidade em Estoque</label>
+                    <input type="number" id="estoque" required placeholder="Ex: 10">
+                </div>
 
-            <button type="submit" class="btn-enviar">Cadastrar Produto</button>
-        </form>
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" required placeholder="Digite os detalhes técnicos do produto..."></textarea>
+                </div>
 
-        <a href="/produtos" class="link-loja">Voltar para a Vitrine da Loja</a>
+                <div class="form-group">
+                    <label for="imagem">Imagem do Produto</label>
+                    <input type="file" id="imagem" accept="image/*" required>
+                </div>
+
+                <button type="submit" class="btn-enviar">Cadastrar Produto</button>
+            </form>
+        </div>
+
+        <div id="aba-customizacao" class="tab-conteudo">
+            <h2 class="titulo-secao">Identidade Visual da Loja</h2>
+            <form id="formCustomizarLoja" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="selectPagina">Escolha a Página para alterar o Fundo:</label>
+                    <select id="selectPagina" name="pagina">
+                        <option value="produtos">Vitrine de Produtos</option>
+                        <option value="carrinho">Carrinho de Compras</option>
+                        <option value="login">Tela de Login</option>
+                        <option value="cadastro">Tela de Cadastro</option>
+                        <option value="dashboard">Dashboard do Admin</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="corFundo">Cor de Fundo da Página Selecionada:</label>
+                    <input type="color" id="corFundo" name="cor_fundo" value="#ffffff">
+                </div>
+
+                <div class="form-group">
+                    <label for="corPrimaria">Cor Primária Global (Botões e Destaques):</label>
+                    <input type="color" id="corPrimaria" name="cor_primaria" value="<%= layout.cor_primaria %>">
+                </div>
+
+                <div class="form-group">
+                    <label for="logoEmpresa">Alterar Nova Imagem da Logo Corporativa:</label>
+                    <input type="file" id="logoEmpresa" name="logo" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn-customizar">Salvar Configurações Visuais</button>
+            </form>
+        </div>
+
+        <a href="/produtos" class="link-loja"><i class="fa-solid fa-store"></i> Voltar para a Vitrine da Loja</a>
     </div>
 
     <script src="/js/administrador.js"></script>
