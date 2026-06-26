@@ -3,7 +3,7 @@ import Pedido from '../models/pedido.js';
 export const finalizarPedido = async (req, res) => {
   try {
     // ⚠️ SEGURANÇA: Pegamos o ID do usuário direto do Token decodificado pelo middleware
-    const id_usuario = req.usuario ? req.usuario.id : null;
+   const id_usuario = req.usuario ? (req.usuario.id_usuario || req.usuario.id) : null;
     const { itens } = req.body;
 
     if (!id_usuario) {

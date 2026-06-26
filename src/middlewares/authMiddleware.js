@@ -12,7 +12,14 @@ export const verificarToken = (req, res, next) => {
     
     try {
         const decodificado = jwt.verify(token, JWT_SECRET);
-        req.usuario = decodificado;
+        
+        // ⚡ CORREÇÃO CRÍTICA: Garante que a propriedade '.id' exista 
+        // mesmo se o payload original do JWT foi assinado como 'id_usuario'
+        req.usuario = {
+            ...decodificado,
+            id: decodificado.id || decodificado.id_usuario
+        };
+        
         next();
     } catch (error) {
         return res.status(401).json({ erro: "Token inválido ou expirado!" });
@@ -29,7 +36,12 @@ export const verificarTokenView = (req, res, next) => {
     
     try {
         const decodificado = jwt.verify(token, JWT_SECRET);
-        req.usuario = decodificado;
+        
+        req.usuario = {
+            ...decodificado,
+            id: decodificado.id || decodificado.id_usuario
+        };
+        
         next();
     } catch (error) {
         res.clearCookie('token');
@@ -47,7 +59,11 @@ export const apenasAdminView = (req, res, next) => {
 
     try {
         const decodificado = jwt.verify(token, JWT_SECRET);
-        req.usuario = decodificado;
+        
+        req.usuario = {
+            ...decodificado,
+            id: decodificado.id || decodificado.id_usuario
+        };
 
         if (req.usuario && (req.usuario.tipo_usuario === 'admin' || req.usuario.tipo_usuario === 'admin_principal' || req.usuario.email === 'admin@gmail.com')) {
             return next();
@@ -71,7 +87,12 @@ export const verificarTokenOpcional = (req, res, next) => {
     
     try {
         const decodificado = jwt.verify(token, JWT_SECRET);
-        req.usuario = decodificado;
+        
+        req.usuario = {
+            ...decodificado,
+            id: decodificado.id || decodificado.id_usuario
+        };
+        
         next();
     } catch (error) {
         req.usuario = null;
