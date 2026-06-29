@@ -122,11 +122,6 @@ export const renderLogin = async (req, res) => {
     res.render('login', { layout }); 
 };
 
-export const renderHome = async (req, res) => {
-    const layout = await obterLayout();
-    res.render('apresentacao', { layout }); 
-};
-
 export const renderCadastro = async (req, res) => {
     const layout = await obterLayout();
     res.render('cadastro', { layout }); 
@@ -135,9 +130,30 @@ export const renderCadastro = async (req, res) => {
 export const renderAdminPainel = async (req, res) => {
     try {
         const layout = await obterLayout(); // 🆕 Carrega layout
-        res.render('admin', { layout }); 
+        // ⚡ CORREÇÃO CRÍTICA: Garante que o usuário logado seja injetado na view do admin.
+        // Isso confirma que o middleware de autenticação foi executado antes de renderizar a página,
+        // o que é essencial para as chamadas de API subsequentes funcionarem.
+        res.render('admin', { layout, usuarioLogado: req.usuario || null }); 
     } catch (error) {
         console.error("❌ Erro ao renderizar Painel do Admin:", error);
         res.status(500).send("Erro interno ao carregar a página de administração.");
+    }
+};
+
+// ⚡ NOVO: Renderiza a página de impressão de um pedido específico.
+export const renderCupomPedido = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pedido = await Pedido.buscarPedidosPorUsuario(null, id); // Reutiliza a busca, mas para um ID específico
+
+        if (!pedido || pedido.length === 0) {
+            return res.status(404).send("Pedido não encontrado.");
+        }
+
+        // A função buscarPedidosPorUsuario retorna um array, pegamos o primeiro elemento.
+        res.render('cupom', { pedido: pedido[0] });
+    } catch (error) {
+        console.error("❌ Erro ao renderizar cupom do pedido:", error);
+        res.status(500).send("Erro interno ao gerar o cupom do pedido.");
     }
 };

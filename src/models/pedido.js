@@ -2,13 +2,17 @@ import { sequelize, Pedido as PedidoORM, PedidoItem, Produto as ProdutoORM, Usua
 import { Op } from 'sequelize';
 
 const Pedido = {
-  buscarPedidosPorUsuario: async (id_usuario) => {
+  // ⚡ MELHORIA: A função agora pode buscar por usuário ou por um pedido específico.
+  buscarPedidosPorUsuario: async (id_usuario, id_pedido_especifico = null) => {
+    const where = {};
+    if (id_usuario) {
+      where.id_usuario = id_usuario;
+    }
+    if (id_pedido_especifico) {
+      where.id_pedido = id_pedido_especifico;
+    }
     // 1. Busca todos os pedidos do usuário
-    const pedidos = await PedidoORM.findAll({
-      where: { id_usuario },
-      order: [['data_pedido', 'DESC']],
-      raw: true
-    });
+    const pedidos = await PedidoORM.findAll({ where, order: [['data_pedido', 'DESC']], raw: true });
 
     if (pedidos.length === 0) return [];
 

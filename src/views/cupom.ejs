@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cupom do Pedido #<%= pedido.id_pedido %></title>
+    <!-- ⚡ REATORAÇÃO: Link para o arquivo CSS externo -->
+    <link rel="stylesheet" href="/css/cupom.css">
+</head>
+<body onload="window.print()">
+
+    <div class="cupom-header">
+        <h2>MEU COMÉRCIO LTDA</h2>
+        <p>CNPJ: 00.000.000/0001-00</p>
+        <p>Rua Exemplo, 123 - Bairro Centro</p>
+        <p>----------------------------------------</p>
+        <p><strong>CUPOM NÃO FISCAL</strong></p>
+        <p>Pedido: #<%= pedido.id_pedido %></p>
+        <p>Data: <%= new Date(pedido.data_pedido).toLocaleString('pt-BR') %></p>
+    </div>
+
+    <div class="cupom-body">
+        <table>
+            <thead>
+                <tr><th>Produto</th><th>Qtd</th><th>Vl. Unit.</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                <% pedido.itens.forEach(item => { %>
+                    <tr class="item-row">
+                        <td><%= item.nome_produto %></td>
+                        <td><%= item.quantidade %></td>
+                        <td><%= Number(item.preco_unitario).toFixed(2) %></td>
+                        <td><%= (item.quantidade * item.preco_unitario).toFixed(2) %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="total-section">
+        <h3>TOTAL: R$ <%= Number(pedido.valor_total).toFixed(2) %></h3>
+    </div>
+
+    <div class="cupom-footer">
+        <p>Obrigado pela preferência!</p>
+    </div>
+
+</body>
+</html>

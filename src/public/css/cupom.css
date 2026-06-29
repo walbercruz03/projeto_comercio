@@ -1,0 +1,54 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+    width: 80mm; /* Largura padrão de impressoras térmicas */
+    margin: 0 auto;
+    padding: 10px;
+    color: #000;
+    background-color: #fff;
+}
+.cupom-header, .cupom-footer {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.cupom-header h2 {
+    margin: 0;
+    font-size: 16px;
+}
+.cupom-header p {
+    margin: 2px 0;
+    font-size: 12px;
+}
+.cupom-body {
+    border-top: 1px dashed #000;
+    border-bottom: 1px dashed #000;
+    padding: 10px 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+th, td {
+    padding: 4px 0;
+}
+th {
+    text-align: left;
+    border-bottom: 1px solid #000;
+}
+.item-row td:nth-child(2), .item-row td:nth-child(3), .item-row td:nth-child(4) {
+    text-align: right;
+}
+.total-section {
+    margin-top: 15px;
+    text-align: right;
+}
+.total-section h3 {
+    font-size: 14px;
+    margin: 5px 0;
+}
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+}

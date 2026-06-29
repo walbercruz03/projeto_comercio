@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS usuario (
   data_nascimento DATE,
   email VARCHAR(50),
   telefone VARCHAR(50),
-  senha VARCHAR(50)
+  senha VARCHAR(50),
+  tipo_usuario VARCHAR(20) DEFAULT 'cliente'
 );
 
 -- 1.5. Tabela Exclusiva para Administradores Secundários
@@ -56,6 +57,16 @@ INSERT INTO produto (nome, descricao, preco, estoque, imagem, categoria) VALUES
 ('Mouse Gamer', 'Mouse de 12000 DPI com botões laterais.', 150.00, 20, NULL, 'Periféricos'),
 ('Monitor 24" Full HD', 'Monitor 75Hz com painel IPS e design sem bordas.', 850.00, 10, NULL, 'Monitores')
 ON CONFLICT DO NOTHING;
+
+-- ⚡ CORREÇÃO: Garante que o usuário "Cliente Balcão" com ID 1 exista na tabela 'usuario'.
+-- Este usuário é essencial para associar pedidos de vendas presenciais feitas pelo admin.
+INSERT INTO usuario (id_usuario, nome, email, senha, tipo_usuario)
+VALUES (1, 'Cliente Balcão', 'balcao@suaempresa.com', 'senha_balcao_segura', 'cliente')
+ON CONFLICT (id_usuario) DO NOTHING;
+
+-- ⚡ CORREÇÃO CRÍTICA: Sincroniza o valor da sequência SERIAL com o maior ID existente na tabela.
+-- Isso evita o erro "duplicate key" ao cadastrar novos usuários após uma inserção manual.
+SELECT setval(pg_get_serial_sequence('usuario', 'id_usuario'), (SELECT MAX(id_usuario) FROM usuario));
 
 -- 5. Tabela de Configurações Visuais do Sistema (Customização do Admin)
 CREATE TABLE IF NOT EXISTS configuracao_sistema (

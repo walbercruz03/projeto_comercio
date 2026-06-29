@@ -1,26 +1,35 @@
-import { Router } from 'express';
-import * as viewController from '../controllers/viewController.js';
+import express from 'express';
+import {
+    renderDashboard,
+    renderProdutos,
+    renderGerenciarAdmins,
+    renderCarrinho,
+    renderMeusPedidos,
+    renderRecuperarSenha,
+    renderLogin,
+    renderCadastro,
+    renderAdminPainel,
+    renderCupomPedido // Importa a nova função
+} from '../controllers/viewController.js';
 import { verificarTokenView, apenasAdminView, verificarTokenOpcional } from '../middlewares/authMiddleware.js';
 
-const router = Router();
+const router = express.Router();
 
-// 🔓 Telas totalmente públicas ou com token opcional (Vitrine Aberta)
-router.get('/', verificarTokenOpcional, viewController.renderProdutos); 
-router.get('/produtos', verificarTokenOpcional, viewController.renderProdutos); 
-router.get('/apresentacao', verificarTokenOpcional, viewController.renderHome); 
+// Rotas Públicas (ou com verificação opcional)
+router.get('/', verificarTokenOpcional, renderProdutos); // Rota raiz agora renderiza a vitrine de produtos diretamente.
+router.get('/login', renderLogin);
+router.get('/cadastro', renderCadastro);
+router.get('/recuperar-senha', renderRecuperarSenha);
 
-router.get('/login', viewController.renderLogin);           
-router.get('/cadastro', viewController.renderCadastro); 
-router.get('/recuperar-senha', viewController.renderRecuperarSenha);
+// Rotas Protegidas (Exigem login)
+router.get('/produtos', verificarTokenView, renderProdutos); // Mantida para compatibilidade de links existentes
+router.get('/carrinho', verificarTokenView, renderCarrinho);
+router.get('/meus_pedidos', verificarTokenView, renderMeusPedidos);
+router.get('/pedidos/cupom/:id', verificarTokenView, renderCupomPedido); // ⚡ ROTA ADICIONADA
 
-// 🔐 Telas que exigem login obrigatório do cliente
-router.get('/meus_pedidos', verificarTokenView, viewController.renderMeusPedidos);
-router.get('/carrinho', verificarTokenView, viewController.renderCarrinho); // O carrinho pode ser visto, mas vamos travar a finalização
-
-// 🔐 Telas Administrativas trancadas
-router.get('/dashboard', apenasAdminView, viewController.renderDashboard); 
-router.get('/gerenciar_admins', apenasAdminView, viewController.renderGerenciarAdmins); 
-router.get('/admin', apenasAdminView, viewController.renderAdminPainel);
-router.get('/admin.html', apenasAdminView, viewController.renderAdminPainel);
+// Rotas de Administrador
+router.get('/dashboard', apenasAdminView, renderDashboard);
+router.get('/admin', apenasAdminView, renderAdminPainel);
+router.get('/gerenciar-admins', apenasAdminView, renderGerenciarAdmins);
 
 export default router;

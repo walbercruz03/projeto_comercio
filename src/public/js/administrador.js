@@ -164,10 +164,12 @@ function finalizarVendaPresencial() {
 
     // Criamos o payload exatamente como o controller e o model esperam receber
     const payload = {
+        // ⚡ CORREÇÃO: Garante que o payload enviado para a API seja limpo e no formato esperado,
+        // contendo apenas 'id_produto' e 'quantidade' como números inteiros.
         itens: carrinhoVendaPresencial.map(item => ({
-            id_produto: parseInt(item.id_produto, 10),
-            produtoId: parseInt(item.id_produto, 10), // Redundância para compatibilidade
-            quantidade: parseInt(item.quantidade, 10)
+            id_produto: item.id_produto,
+            quantidade: parseInt(item.quantidade, 10),
+            preco_unitario: item.preco // ⚡ ADIÇÃO: Inclui o preço do item no payload.
         }))
     };
 
@@ -182,24 +184,31 @@ function finalizarVendaPresencial() {
         credentials: 'include', // Essencial para enviar os cookies da sessão atual do admin
         body: JSON.stringify(payload)
     })
-    .then(res => {
-        if (res.ok) {
-            alert("Venda presencial registrada e pedido criado com sucesso!");
-            carrinhoVendaPresencial = [];
-            window.location.reload();
-        } else {
-            // Se o servidor retornar erro, vamos verificar se é autenticação (401) ou outra falha
-            console.error("Erro no servidor. Status:", res.status);
-            if (res.status === 401) {
-                alert("Erro de autenticação: Certifique-se de que o token do usuário possui a propriedade 'id' definida no payload do JWT.");
-            } else {
-                alert("Erro ao registrar venda. Certifique-se de que há estoque suficiente para os itens selecionados.");
-            }
+    .then(async (res) => {
+        // Converte a resposta em JSON para ler o corpo, tanto em caso de sucesso quanto de erro
+        const data = await res.json();
+
+        if (!res.ok) {
+            // Se a resposta não for OK, lança um erro com a mensagem vinda da API
+            console.error("Erro retornado pela API:", data);
+            // A mensagem no 'data.erro' será exibida no alert do .catch()
+            throw new Error(data.erro || 'Ocorreu uma falha desconhecida.');
         }
+
+        // ⚡ MELHORIA: Pergunta se o admin deseja imprimir o cupom fiscal da venda.
+        const querImprimir = confirm(data.mensagem + "\n\nDeseja imprimir o cupom da venda?");
+        
+        if (querImprimir && data.id_pedido) {
+            window.open(`/pedidos/cupom/${data.id_pedido}`, '_blank');
+        }
+
+        carrinhoVendaPresencial = [];
+        renderizarTabelaCarrinho(); // Apenas limpa a tabela sem recarregar a página inteira.
     })
     .catch(err => {
         console.error("Erro na comunicação com o servidor:", err);
-        alert("Erro ao conectar com o servidor.");
+        // Exibe a mensagem de erro específica capturada, seja da API ou de rede
+        alert(err.message);
     });
 }
 // =========================================================================

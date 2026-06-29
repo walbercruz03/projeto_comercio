@@ -2,11 +2,12 @@ import Pedido from '../models/pedido.js';
 
 export const finalizarPedido = async (req, res) => {
   try {
-    // ⚠️ SEGURANÇA: Pegamos o ID do usuário direto do Token decodificado pelo middleware
-   const id_usuario = req.usuario ? (req.usuario.id_usuario || req.usuario.id) : null;
+    // ⚠️ SEGURANÇA: Pegamos o ID do usuário direto do Token decodificado.
+   const id_usuario = req.usuario ? req.usuario.id : null;
     const { itens } = req.body;
 
-    if (!id_usuario) {
+    // ⚡ CORREÇÃO CRÍTICA: Verifica se o id não é nulo ou indefinido, permitindo o id '0' do admin_principal.
+    if (id_usuario === null || id_usuario === undefined) {
       return res.status(401).json({ erro: "Usuário não autenticado para realizar compras." });
     }
 
@@ -14,12 +15,24 @@ export const finalizarPedido = async (req, res) => {
       return res.status(400).json({ erro: "Carrinho vazio. Adicione itens para finalizar o pedido." });
     }
 
-    // Passa o ID real vindo do Postgres para criar o pedido de forma íntegra
-    const idPedidoGerado = await Pedido.criarPedidoCompleto(id_usuario, itens);
+    // ⚡ CORREÇÃO CRÍTICA: Se a venda for presencial (feita pelo admin principal com id 0),
+    // associamos o pedido a um usuário genérico "Cliente Balcão" (com id 1, por exemplo).
+    // Isso evita a violação de chave estrangeira, pois o id 0 não existe na tabela 'usuario'.
+    const idUsuarioFinal = (id_usuario === 0) ? 1 : id_usuario;
+
+    // Passa o ID de usuário válido para o modelo criar o pedido.
+    const idPedidoGerado = await Pedido.criarPedidoCompleto(idUsuarioFinal, itens);
+
     res.status(201).json({ mensagem: "Pedido finalizado com sucesso!", id_pedido: idPedidoGerado });
   } catch (error) {
     console.error("❌ Erro ao finalizar pedido:", error);
-    res.status(500).json({ erro: "Erro interno ao processar o seu pedido." });
+    // ⚡ MELHORIA: Retorna uma mensagem mais clara e específica se o erro for de chave estrangeira,
+    // facilitando o diagnóstico de problemas relacionados a usuários inexistentes.
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      // Esta mensagem agora será exibida no alerta do frontend.
+      return res.status(500).json({ erro: 'Erro de integridade: O usuário para o qual o pedido está sendo criado não existe. Verifique se o usuário "Cliente Balcão" (ID 1) foi inserido no banco de dados.' });
+    }
+    res.status(500).json({ erro: 'Erro interno ao processar o seu pedido.' });
   }
 };
 

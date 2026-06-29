@@ -39,7 +39,7 @@
             // Se o status for 201 (Created), o usuário foi inserido no banco com sucesso!
             if (res.status === 201) {
                 alert("Cadastro realizado com sucesso no banco de dados!");
-                window.location.href = "index.html";
+                window.location.href = "/login"; // ⚡ CORREÇÃO: Redireciona para a rota de login correta.
                 
                 // Limpa os campos do formulário
                 document.getElementById("formCadastro").reset();
